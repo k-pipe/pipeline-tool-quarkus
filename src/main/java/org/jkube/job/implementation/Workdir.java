@@ -67,9 +67,6 @@ public class Workdir {
 		return inputPath.resolve(filename);
 	}
 
-	public FileSystem getFileSystem(final String filename) {
-		return onException(() -> FileSystems.newFileSystem(getInput(filename))).fail("could not open zip file "+filename);
-	}
 
 	public Path getOutput(final String filename) {
 		return outputPath.resolve(filename);

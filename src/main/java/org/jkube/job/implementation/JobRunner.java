@@ -69,7 +69,8 @@ public class JobRunner {
 			} else if (jobIO.isOptional(input)) {
 				jobIO.setField(input, optionalFile(workdir.getInput(jobIO.getInputName(input))));
 			} else if (jobIO.isFileSystem(input)) {
-				jobIO.setField(input, workdir.getFileSystem(jobIO.getInputName(input)));
+				throw new RuntimeException("not implemented");
+				//jobIO.setField(input, workdir.getFileSystem(jobIO.getInputName(input)));
 			} else if (jobIO.isPipesIn(input)) {
 				jobIO.setField(input, new PipesInImpl<>(jobIO.getInputName(input), workdir, itemClass));
 			} else if (!workdir.readInputFile(jobIO.getInputName(input), jobIO.getOutStream(input))) {
