@@ -399,7 +399,7 @@ public class PipelineViewerClient {
 		String pageUrl = url+"&page=0&size=1";
 		System.out.println("Getting page from "+pageUrl);
 		String pageString = Expect.present(Http.get(settings, pageUrl)).elseFail("could not read page");
-		E[] page = (E[]) Json.fromString(pageString, clazz.arrayType());
+		E[] page = null; // not implemented (E[]) Json.fromString(pageString, clazz.arrayType());
 		System.out.println("got page of size "+page.length);
 		if (page.length == 0) {
 			return Optional.empty();
