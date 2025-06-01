@@ -3,7 +3,6 @@ package org.jkube.job.pipeline;
 import org.jkube.application.Application;
 import org.jkube.job.Job;
 import org.jkube.job.Run;
-import org.jkube.pipeline.FindStartClass;
 import org.jkube.pipeline.PipelineProcessingException;
 import org.jkube.pipeline.PipesIn;
 
@@ -21,20 +20,6 @@ public abstract class BasePipelineJob implements Job {
 	protected int numItemsFailed;
 	protected int numItemsProcessed;
 	protected int numItemsDiscarded;
-
-	public static void main(String[] args) {
-		installFailureHandler();
-		Run run = Run.inDocker();
-		if (args.length > 2) {
-			fail("cannot have more than 2 arguments");
-		}
-		if (args.length == 1) {
-			run = run.orLocally(args[0]);
-		} else if (args.length == 2) {
-			run = run.orLocally(args[0], args[1]);
-		}
-		run.job(FindStartClass.findJobClass());
-	}
 
 	public void incNumIn(String pipe, int inc) {
 		numItemsIn.put(pipe, numItemsIn.getOrDefault(pipe, 0)+inc);
