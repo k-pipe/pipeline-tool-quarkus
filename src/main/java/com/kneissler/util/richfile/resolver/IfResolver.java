@@ -35,7 +35,7 @@ public class IfResolver implements Resolver {
         IfStage stage = IfStage.THEN;
         for (LineInFile line : remainingLines) {
             switch (stage) {
-                case THEN -> {
+                case THEN:
                     if (ResolveUtil.remainderOfCommand(line.line, indent, Constants.ELSE) != null) {
                         stage = IfStage.ELSE;
                     } else if (ResolveUtil.remainderOfCommand(line.line, indent, Constants.END) != null) {
@@ -43,15 +43,17 @@ public class IfResolver implements Resolver {
                     } else if (conditionSatisfied) {
                         res.add(line);
                     }
-                }
-                case ELSE -> {
+                    break;
+                case ELSE:
                     if (ResolveUtil.remainderOfCommand(line.line, indent, Constants.END) != null) {
                         stage = IfStage.AFTER;
                     } else if (!conditionSatisfied) {
                         res.add(line);
                     }
-                }
-                case AFTER -> res.add(line);
+                    break;
+                case AFTER:
+                    res.add(line);
+                    break;
             }
         }
         return res;
