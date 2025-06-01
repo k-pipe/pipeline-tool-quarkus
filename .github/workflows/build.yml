@@ -27,7 +27,7 @@ jobs:
         name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          username: kpipe
+          username: pipelining
           password: ${{ secrets.DOCKERHUB_API_KEY }}
       -
         name: Build and push
