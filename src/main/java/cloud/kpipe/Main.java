@@ -66,19 +66,19 @@ public class Main implements QuarkusApplication {
     }
 
     private void execute(Command command, ActionData ad) {
-        Action a = switch (command.getKey()) {
-            case PARSE -> new ParseAction();
-            case RUN -> new RunAction();
-            case SCHEDULE -> new ScheduleAction();
-            case LOGIN -> new LoginAction();
-            case BUILD -> new BuildAction();
-            case PUSH -> new PushAction();
-/*            case PULL -> new PullAction();*/
-            case APPLY -> new ApplyAction();
-/*            case SIMULATE -> new SimulateAction();
-            case FOLLOW -> new FollowAction();*/
-            default -> null;
-        };
+        Action a = null;
+        switch (command.getKey()) {
+            case PARSE: a = new ParseAction(); break;
+            case RUN: a = new RunAction(); break;
+            case SCHEDULE: a = new ScheduleAction(); break;
+            case LOGIN: a = new LoginAction(); break;
+            case BUILD: a = new BuildAction(); break;
+            case PUSH: a = new PushAction(); break;
+/*            case PULL: a = new PullAction(); break;*/
+            case APPLY: a = new ApplyAction(); break;
+/*            case SIMULATE: a = new SimulateAction(); break;
+            case FOLLOW: a = new FollowAction(); break;*/
+        }
         if (a != null) {
             LoggedTaskLog.logHeading(command.getKey(), 1);
             a.doAction(command, ad);

@@ -32,11 +32,12 @@ public class DockerImage {
 
 	@Override
 	public String toString() {
-		return switch (type) {
-			case BUNDLED -> image+"("+path+")";
-			case MANAGED -> image+"("+path+","+provider+","+generation+")";
-			case GENERIC -> tag == null ? image : image+":"+tag;
-		};
+		switch (type) {
+			case BUNDLED: return image+"("+path+")";
+			case MANAGED: return image+"("+path+","+provider+","+generation+")";
+			case GENERIC: return tag == null ? image : image+":"+tag;
+		}
+		return null;
 	}
 
 	public String getProvider() {
