@@ -13,4 +13,4 @@ COPY --from=build /tmp/my-project/target/*-runner /usr/src/app/target/applicatio
 RUN chmod 775 /usr/src/app/target
 EXPOSE 8080
 #CMD ["./application", "-XX:+PrintGC", "-XX:+PrintGCTimeStamps", "-XX:+VerboseGC", "+XX:+PrintHeapShape", "-Xmx128m", "-Dquarkus.http.host=0.0.0.0"]
-ENDPOINT ["./application", "-Xmx128m", "-Dquarkus.http.host=0.0.0.0"]
+ENTRYPOINT ["./application", "-Xmx128m", "-Dquarkus.http.host=0.0.0.0"]

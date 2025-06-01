@@ -74,7 +74,7 @@ public class Main implements QuarkusApplication {
             case LOGIN: a = new LoginAction(); break;
             case BUILD: a = new BuildAction(); break;
             case PUSH: a = new PushAction(); break;
-/*            case PULL: a = new PullAction(); break;*/
+            case PULL: a = new PullAction(); break;
             case APPLY: a = new ApplyAction(); break;
 /*            case SIMULATE: a = new SimulateAction(); break;
             case FOLLOW: a = new FollowAction(); break;*/

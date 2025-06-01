@@ -9,14 +9,12 @@ import org.jkube.util.Expect;
 import java.util.List;
 import java.util.Map;
 
-public class PushAction implements Action {
+public class PullAction implements Action {
 
     @Override
     public void doAction(Command command, ActionData ad) {
         for (DockerImage di : ad.getDockerImages()) {
-            if (di.isBundled()) {
-                docker(di.getPath(), "push", di.getImage());
-            }
+            docker(di.getPath(), "pull", di.getImage());
         }
     }
 
@@ -27,7 +25,7 @@ public class PushAction implements Action {
                 .noError(".*");
         Log.log("Executing command '"+proc.toString()+"' in directory: "+directory);
         proc.execute();
-        Expect.isTrue(proc.hasSucceeded()).elseFail("Could not push docker image in folder "+directory);
+        Expect.isTrue(proc.hasSucceeded()).elseFail("Could not pull docker image in folder "+directory);
     }
 
 }
