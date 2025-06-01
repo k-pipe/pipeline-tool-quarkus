@@ -431,7 +431,7 @@ public class PipelineViewerClient {
 			Log.log("Retrieving page from {}", pageUrl);
 			String pageString = Expect.present(Http.get(settings, pageUrl))
 					.elseFail("could not read page");
-			E[] page = (E[]) Json.fromString(pageString, clazz.arrayType());
+			E[] page = null; // not implemented (E[]) Json.fromString(pageString, clazz.arrayType());
 			for (E e : page) {
 				res.add(e);
 			}
