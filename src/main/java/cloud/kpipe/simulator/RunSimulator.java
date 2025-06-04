@@ -18,7 +18,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static cloud.kpipe.simulator.RunSimulator.InceptionLevel.*;
 import static org.jkube.application.Application.fail;
+import static org.jkube.job.Run.DOCKER_WORKDIR;
 import static org.jkube.logging.Log.*;
 
 public class RunSimulator {
@@ -27,6 +29,7 @@ public class RunSimulator {
     private final String OUTPUT_FOLDER = "output";
 
     private final String workdir;
+    private final String simulationdir;
     private final String startStep;
     private final String endStep;
     private final String credentialsMount;
@@ -34,8 +37,9 @@ public class RunSimulator {
     private final Map<PipelineStep, Integer> stepNumbers = new LinkedHashMap<>();
 
 
-    public RunSimulator(String workdir, String startStep, String endStep, String credentialsMount) {
+    public RunSimulator(String workdir, String simulationdir, String startStep, String endStep, String credentialsMount) {
         this.workdir = workdir;
+        this.simulationdir = simulationdir;
         this.startStep = startStep;
         this.endStep = endStep;
         this.credentialsMount = credentialsMount;
@@ -66,7 +70,7 @@ public class RunSimulator {
                 }
                 runStep(step, resolver);
                 if (uiHandler != null) {
-                    uiHandler.afterStep(outputDir(step), step);
+                    uiHandler.afterStep(outputDir(step, TOOL_CONTAINER), step);
                 }
                 log("Terminated step {} after {} seconds", stepNumbers.get(step), getSeconds(stepstart));
             }
@@ -85,18 +89,38 @@ public class RunSimulator {
         }
     }
 
-    private Path outputDir(PipelineStep step) {
-        return resolve(dirName(step), OUTPUT_FOLDER);
+    // there are three nested levels where file locations can be specified:
+    // HOST: the absolute path in the host system
+    // TOOL_CONTAINER: the path inside the container that runs this tool
+    // STEP_CONTAINER: the path inside the container that executes a simulated pipeline step
+    static enum InceptionLevel {
+        HOST, TOOL_CONTAINER, STEP_CONTAINER
     }
 
-    private Path inputDir(PipelineConnector connector) {
-        return resolve(dirName(connector.getTarget()), INPUT_FOLDER, connector.getSource().getId());
+    private Path stepPath(PipelineStep step, InceptionLevel level) {
+        String stepDir = dirName(step);
+        switch (level) {
+            case HOST:
+                return Path.of(workdir).resolve(simulationdir).resolve(stepDir);
+            case TOOL_CONTAINER:
+                return Path.of(DOCKER_WORKDIR).resolve(simulationdir).resolve(stepDir);
+            case STEP_CONTAINER:
+                return Path.of(DOCKER_WORKDIR);
+        }
+        return null;
     }
 
-    private Path configDir(PipelineStep step) {
-        return resolve(dirName(step), INPUT_FOLDER);
+    private Path inputDir(PipelineStep step, InceptionLevel level) {
+        return stepPath(step, level).resolve(INPUT_FOLDER);
     }
 
+    private Path outputDir(PipelineStep step, InceptionLevel level) {
+        return stepPath(step, level).resolve(OUTPUT_FOLDER);
+    }
+
+    private Path inputSubDir(PipelineConnector connector, InceptionLevel level) {
+        return inputDir(connector.getTarget(), level).resolve(connector.getSource().getId());
+    }
 
     private void runStep(PipelineStep step, VariableResolver resolver) {
         cleanDirectories(step);
@@ -126,8 +150,8 @@ public class RunSimulator {
 
     private void copyInput(final PipelineStep step, final String nameInTarget, final PipelineConnector connector) {
         String filename = connector.getFilename();
-        final Path source = outputDir(connector.getSource()).resolve(filename);
-        final Path target = inputDir(connector).resolve(filename);
+        final Path source = outputDir(connector.getSource(), TOOL_CONTAINER).resolve(filename);
+        final Path target = inputSubDir(connector, TOOL_CONTAINER).resolve(filename);
         log("Copy {} bytes from {} to {}", source.toFile().length(), source, target);
         makePath(target);
         onException(() -> Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING))
@@ -145,12 +169,12 @@ public class RunSimulator {
 
     private boolean runJob(final PipelineStep step) {
         DockerImageRunner runner = getRunner(step);
-        return runner.run(resolve(dirName(step)).toAbsolutePath().toString());
+        return runner.run(stepPath(step, HOST).toAbsolutePath().toString());
     }
 
     private void cleanDirectories(final PipelineStep step) {
-        removeRecursively(configDir(step).toFile());
-        removeRecursively(outputDir(step).toFile());
+        removeRecursively(inputDir(step, TOOL_CONTAINER).toFile());
+        removeRecursively(outputDir(step, TOOL_CONTAINER).toFile());
     }
 
     protected DockerImageRunner getRunner(PipelineStep step) {
@@ -158,18 +182,17 @@ public class RunSimulator {
     }
 
     private List<String> createArgs(PipelineStep step) {
-        String dirInDocker = "/workdir";
         List<String> res = new ArrayList<>();
         res.add("--config");
-        res.add(dirInDocker+"/input/config.json");
+        res.add(inputDir(step, STEP_CONTAINER).resolve("config.json").toString());
         step.getInputs().values().forEach(connector -> {
             res.add("--"+connector.getNameAtTarget());
-            res.add(dirInDocker+"/input/"+connector.getSource().getId()+"/"+connector.getFilename());
+            res.add(inputSubDir(connector, STEP_CONTAINER).resolve(connector.getFilename()).toString());
         });
         Map<String, Set<String>> outputs = new LinkedHashMap<>();
         step.getOutputs().forEach(connector -> {
             String arg = connector.getNameAtSource();
-            String filename = dirInDocker+"/output/"+connector.getFilename();
+            String filename = outputDir(step, STEP_CONTAINER).resolve(connector.getFilename()).toString();
             outputs.putIfAbsent(arg, new LinkedHashSet<>());
             outputs.get(arg).add(filename);
         });
@@ -182,18 +205,10 @@ public class RunSimulator {
 
 
     private void writeData(final PipelineStep step, final String name, final byte[] data) {
-        final Path target = configDir(step).resolve(name);
+        final Path target = inputDir(step, TOOL_CONTAINER).resolve(name);
         log("Writing {} bytes to {}", data.length, target);
         makePath(target);
         onException(() -> Files.write(target, data)).fail("Could not write file "+ target);
-    }
-
-    private Path resolve(final String... names) {
-        Path res = Path.of(workdir);
-        for (String name : names) {
-            res = res.resolve(name);
-        }
-        return res;
     }
 
     private void makePath(final Path path) {

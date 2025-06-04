@@ -57,9 +57,9 @@ public class DockerImageRunner {
 				.fallback(false);
 	}
 
-	public boolean run(final String workdirAbsolute) {
-		log("Executing docker image {} in {} with args {}", dockerImageSpec, workdirAbsolute, commandlineArgs);
-		return onException(() -> tryRun(buildRunCommandLine(workdirAbsolute)))
+	public boolean run(final String hostDirAbsolute) {
+		log("Executing docker image {} with workdir {} (in host) with args {}", dockerImageSpec, hostDirAbsolute, commandlineArgs);
+		return onException(() -> tryRun(buildRunCommandLine(hostDirAbsolute)))
 				.warn("Problem occurred running Docker process")
 				.fallback(false);
 	}
@@ -83,7 +83,7 @@ public class DockerImageRunner {
 		return docker.exitValue() == 0;
 	}
 
-	private List<String> buildRunCommandLine(final String workdirAbsolute) {
+	private List<String> buildRunCommandLine(final String hostDirAbsolute) {
 		List<String> res = new ArrayList<>();
 		res.add("docker");
 		res.add("run");
@@ -103,7 +103,7 @@ public class DockerImageRunner {
 			res.add(credentialsMount);
 		}
 		res.add("-v");
-		res.add(workdirAbsolute + ":" + Run.DOCKER_WORKDIR);
+		res.add(hostDirAbsolute + ":" + Run.DOCKER_WORKDIR);
 		if (mountDockerSock) {
 			res.add("-v");
 			res.add("/var/run/docker.sock:/var/run/docker.sock");

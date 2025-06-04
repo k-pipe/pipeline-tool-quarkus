@@ -50,8 +50,9 @@ public class Main implements QuarkusApplication {
         )
         .command(SIMULATE, "execute specified pipeline runs on local machine using docker",
             Option.withValue(P, PIPELINE, "the name of the pipeline to be simulated").optional(),
-            Option.withValue(W, WORKDIR, "directory in which the simulation of the pipeline run takes place").withDefault(DEFAULT_WORKDIR),
-            Option.withValue(S, START, "optional id of the step for which simulation gets started").optional(),
+            Option.withValue(W, WORKDIR, "directory in host which is mounted to the pipelining-tools container under /workdir"),
+            Option.withValue(S, SIMULATIONDIR, "directory relative to workdir in which simulation takes place").withDefault(DEFAULT_SIMULATION_DIR),
+            Option.withValue(B, BEGIN, "optional id of the step for which simulation gets started").optional(),
             Option.withValue(E, END, "optional id of the step for which simulation ends").optional(),
             Option.withValue(C, CREDENTIALS, "the mount string for the credentials to use (format outside:inside with absolute paths)").withDefault(DEFAULT_CREDENTIALS)
         )

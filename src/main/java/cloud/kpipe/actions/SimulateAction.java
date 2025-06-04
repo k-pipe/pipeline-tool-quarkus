@@ -14,10 +14,11 @@ public class SimulateAction implements Action {
         String pipelineName = command.getOptionalOptionValue(Constants.PIPELINE).orElseGet(() -> ad.getLatestParsedPipeline().getName());
         Pipeline pipeline = ad.findParsedPipeline(pipelineName);
         String workdir = command.getOptionValue(Constants.WORKDIR);
-        String startStep = command.getOptionalOptionValue(Constants.START).orElse(null);
+        String simulationdir = command.getOptionValue(Constants.SIMULATIONDIR);
+        String startStep = command.getOptionalOptionValue(Constants.BEGIN).orElse(null);
         String endStep = command.getOptionalOptionValue(Constants.END).orElse(null);
         String credentialsMount = command.getOptionValue(Constants.CREDENTIALS);
-        RunSimulator simulator = new RunSimulator(workdir, startStep, endStep, credentialsMount);
+        RunSimulator simulator = new RunSimulator(workdir, simulationdir, startStep, endStep, credentialsMount);
         simulator.runLocally(pipeline);
     }
 

@@ -51,11 +51,13 @@ public class Constants {
 
     public static final String W = "w";
     public static final String WORKDIR = "workdir";
-    public static final String DEFAULT_WORKDIR = "simulation";
+    public static final String SIMULATIONDIR = "simulationdir";
+    public static final String DEFAULT_SIMULATION_DIR = "simulation";
     public static final String CREDENTIALS = "credentials";
     public static final String DEFAULT_CREDENTIALS = "/root/.config/gcloud:/root/.config/gcloud";
     public static final String S = "s";
-    public static final String START = "start";
+    public static final String B = "b";
+    public static final String BEGIN = "begin";
 
     public static final String E = "e";
     public static final String END = "end";
