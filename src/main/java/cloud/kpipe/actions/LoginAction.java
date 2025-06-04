@@ -25,7 +25,7 @@ public class LoginAction implements Action {
         }
         String registry = command.getOptionalOptionValue(Constants.REGISTRY).orElse(getNaming(pipeline,"registry"));
         if (!registry.isBlank()) {
-            gcloud("--verbostity=error", "auth", "configure-docker", registry);
+            gcloud("--verbosity=error", "auth", "configure-docker", registry);
         }
     }
 
