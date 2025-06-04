@@ -13,19 +13,18 @@ public class PullAction implements Action {
 
     @Override
     public void doAction(Command command, ActionData ad) {
-        for (DockerImage di : ad.getDockerImages()) {
-            docker(di.getPath(), "pull", di.getImageWithTag());
+        for (String image : ad.getDockerImageNames(false)) {
+            docker( "pull", image);
         }
     }
 
-    private void docker(String directory, String... args) {
+    private void docker(String... args) {
         ExternalProcess proc = new ExternalProcess(Map.of())
                 .command("docker", List.of(args))
-                .dir(directory)
                 .noError(".*");
-        Log.log("Executing command '"+proc.toString()+"' in directory: "+directory);
+        Log.log("Executing command '"+proc.toString()+"'");
         proc.execute();
-        Expect.isTrue(proc.hasSucceeded()).elseFail("Could not pull docker image in folder "+directory);
+        Expect.isTrue(proc.hasSucceeded()).elseFail("Could not pull docker image");
     }
 
 }

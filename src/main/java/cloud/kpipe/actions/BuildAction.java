@@ -6,6 +6,7 @@ import org.jkube.job.DockerImage;
 import org.jkube.logging.Log;
 import org.jkube.util.Expect;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -13,15 +14,13 @@ public class BuildAction implements Action {
 
     @Override
     public void doAction(Command command, ActionData ad) {
-        for (DockerImage di : ad.getDockerImages()) {
-            if (di.isBundled()) {
-                docker(di.getPath(), "build", ".", "-t", di.getImageWithTag());
-            }
-        }
+        ad.getBundledDockerImagePathsAndNames().forEach((path, image) -> {
+            docker(path, "build", ".", "-t", image);
+        });
     }
 
 
-    private void docker(String directory, String... args) {
+    private void docker(Path directory, String... args) {
         ExternalProcess proc = new ExternalProcess(Map.of())
                 .command("docker", List.of(args))
                 .dir(directory)

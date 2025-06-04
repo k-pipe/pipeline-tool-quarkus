@@ -24,7 +24,7 @@ public class ActionData {
 
     private final Map<String, PipelineRun> runs = new LinkedHashMap<>();
 
-    private final List<DockerImage> dockerImages = new LinkedList<>();
+    private final Map<Path, List<DockerImage>> dockerImages = new LinkedHashMap<>();
 
     public void registerManifestForPipeline(String pipeline, Path manifestPath) {
         Expect.isFalse(manifests.containsKey(pipeline)).elseFail("A pipeline with this name was parsed already before: "+pipeline);
@@ -99,12 +99,40 @@ public class ActionData {
         return res;
     }
 
-    public List<DockerImage> getDockerImages() {
+    public Map<Path,List<DockerImage>> getDockerImages() {
         return dockerImages;
     }
 
-    public void addDockerImage(DockerImage image) {
-        dockerImages.add(image);
+    public Set<String> getDockerImageNames(boolean onlyBundled) {
+        Set<String> res = new TreeSet<>();
+        dockerImages.forEach((path,images) -> {
+            images.forEach(image -> {
+                if (image.isBundled() || !onlyBundled) {
+                    res.add(image.getImageWithTag());
+                }
+            });
+        });
+        return res;
+    }
+
+    public Map<Path, String> getBundledDockerImagePathsAndNames() {
+        Map<Path,String> res = new LinkedHashMap<>();
+        dockerImages.forEach((pipelinePath,images) -> {
+            images.forEach(image -> {
+                if (image.isBundled()) {
+                    Path path = pipelinePath.getParent().resolve(image.getPath());
+                    String name = image.getImageWithTag();
+                    String previous = res.put(path, name);
+                    Expect.isTrue((previous == null) || previous.equals(name)).elseFail("Same docker image path "+path+" occurs with different images: "+previous+" vs. "+name);
+                }
+            });
+        });
+        return res;
+    }
+
+    public void addDockerImage(Path path, DockerImage image) {
+        dockerImages.putIfAbsent(path, new LinkedList<>());
+        dockerImages.get(path).add(image);
     }
 
     public Map<Pipeline, List<Schedule>> getSchedules() {

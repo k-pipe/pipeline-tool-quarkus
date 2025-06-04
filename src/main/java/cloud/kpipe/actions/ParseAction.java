@@ -97,7 +97,7 @@ public class ParseAction implements Action {
         PipelineMarkdownWithSettings markdown = parseMarkdown(input, parameters);
         Map<String, String> variables = markdown.getVariables();
         PipelineV2 pipeline = markdown.createPipeline(variables);
-        pipeline.getSteps().forEach(s -> ad.addDockerImage(s.getDockerImage()));
+        pipeline.getSteps().forEach(s -> ad.addDockerImage(input, s.getDockerImage()));
         List<String> pumlLines = markdown.getPipelineUMLLines();
         Map<String,String> namings = markdown.getNamings(variables);
         Log.log("Naming conventions after resolution:");
