@@ -40,7 +40,8 @@ public class LoginAction implements Action {
                 .command("gcloud", List.of(args))
                 .errorMarker("ERROR")
                 .warning("WARNING")
-                .noError("");
+                .noError("")
+                .successMarker("Adding credentials");
         Log.log("Executing command '"+proc.toString()+"'");
         proc.execute();
         Expect.isTrue(proc.hasSucceeded()).elseFail("Could not login to cluster");
