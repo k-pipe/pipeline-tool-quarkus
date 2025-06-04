@@ -25,7 +25,7 @@ public class LoginAction implements Action {
         }
         String registry = command.getOptionalOptionValue(Constants.REGISTRY).orElse(getNaming(pipeline,"registry"));
         if (!registry.isBlank()) {
-            gcloud("Adding credentials", "auth", "configure-docker", registry);
+            gcloud("Docker configuration file updated.", "auth", "configure-docker", registry, "-q");
         }
     }
 
@@ -44,7 +44,7 @@ public class LoginAction implements Action {
                 .successMarker(successMarker);
         Log.log("Executing command '"+proc.toString()+"'");
         proc.execute();
-        Expect.isTrue(proc.hasSucceeded()).elseFail("Could not login to cluster");
+        Expect.isTrue(proc.hasSucceeded()).elseFail("Could not execute gcloud command");
     }
 
     private void kubectl(String... args) {
