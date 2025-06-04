@@ -41,7 +41,8 @@ public class LoginAction implements Action {
                 .errorMarker("ERROR")
                 .warning("WARNING")
                 .noError("")
-                .successMarker("Adding credentials");
+                .successMarker("Adding credentials")
+                .successMarker("kubeconfig entry generated");
         Log.log("Executing command '"+proc.toString()+"'");
         proc.execute();
         Expect.isTrue(proc.hasSucceeded()).elseFail("Could not login to cluster");
