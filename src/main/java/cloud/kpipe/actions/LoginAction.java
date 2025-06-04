@@ -40,7 +40,8 @@ public class LoginAction implements Action {
                 .command("gcloud", List.of(args))
                 .noError("Fetching cluster")
                 .noError("kubeconfig entry generated")
-                .noError("Adding credentials for:");
+                .noError("Adding credentials for:")
+                .noError("After update");
         Log.log("Executing command '"+proc.toString()+"'");
         proc.execute();
         Expect.isTrue(proc.hasSucceeded()).elseFail("Could not login to cluster");
