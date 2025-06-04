@@ -38,7 +38,7 @@ public class LoginAction implements Action {
     private void gcloud(String... args) {
         ExternalProcess proc = new ExternalProcess(Map.of())
                 .command("gcloud", List.of(args))
-                .errorMarker("Fetching cluster")
+                .noError("Fetching cluster")
                 .noError("kubeconfig entry generated")
                 .noError("Adding credentials for:");
         Log.log("Executing command '"+proc.toString()+"'");
