@@ -25,7 +25,7 @@ public class LoginAction implements Action {
         }
         String registry = command.getOptionalOptionValue(Constants.REGISTRY).orElse(getNaming(pipeline,"registry"));
         if (!registry.isBlank()) {
-            gcloud("--verbosity=error", "auth", "configure-docker", registry);
+            gcloud( "auth", "configure-docker", registry);
         }
     }
 
@@ -38,9 +38,9 @@ public class LoginAction implements Action {
     private void gcloud(String... args) {
         ExternalProcess proc = new ExternalProcess(Map.of())
                 .command("gcloud", List.of(args))
-                .noError("Fetching cluster")
-                .noError("kubeconfig entry generated")
-                .noError("Adding credentials for:");
+                .errorMarker("ERROR")
+                .warning("WARNING")
+                .noError("");
         Log.log("Executing command '"+proc.toString()+"'");
         proc.execute();
         Expect.isTrue(proc.hasSucceeded()).elseFail("Could not login to cluster");
