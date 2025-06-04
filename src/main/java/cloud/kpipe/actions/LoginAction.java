@@ -39,7 +39,8 @@ public class LoginAction implements Action {
         ExternalProcess proc = new ExternalProcess(Map.of())
                 .command("gcloud", List.of(args))
                 .noError("Fetching cluster")
-                .noError("kubeconfig entry generated");
+                .noError("kubeconfig entry generated")
+                .noError("Adding credentials for:");
         Log.log("Executing command '"+proc.toString()+"'");
         proc.execute();
         Expect.isTrue(proc.hasSucceeded()).elseFail("Could not login to cluster");
