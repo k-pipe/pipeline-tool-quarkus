@@ -10,7 +10,11 @@ RUN mvn -f /tmp/my-project/pom.xml -Pnative clean package
 #FROM registry.access.redhat.com/ubi8/ubi-minimal
 FROM google/cloud-sdk:slim
 #FROM bitnami/google-cloud-sdk
-RUN apt-get update && apt-get -y --no-install-recommends kubectl google-cloud-cli-gke-gcloud-auth-plugin && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get -y --no-install-recommends install \
+    kubectl \
+    google-cloud-cli-gke-gcloud-auth-plugin \
+ && rm -rf /var/lib/apt/lists/*
+RUN gcloud components install gke-gcloud-auth-plugin
 WORKDIR /usr/src/app/target/
 COPY --from=build /tmp/my-project/target/*-runner /usr/src/app/target/application
 RUN chmod 775 /usr/src/app/target
