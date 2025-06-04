@@ -18,14 +18,14 @@ public class LoginAction implements Action {
         String k8scluster = getNaming(pipeline, "k8s-cluster");
         String k8sproject =  getNaming(pipeline, "k8s-project");
         String region =  getNaming(pipeline, "region");
-        gcloud("container", "clusters",  "get-credentials", k8scluster, "--region", region, "--project", k8sproject);
+        gcloud("kubeconfig entry generated", "container", "clusters",  "get-credentials", k8scluster, "--region", region, "--project", k8sproject);
         String namespace = command.getOptionalOptionValue(Constants.NAMESPACE).orElse(pipeline.getNamespace());
         if (!namespace.isBlank()) {
             kubectl("config", "set-context", "--current", "--namespace="+namespace);
         }
         String registry = command.getOptionalOptionValue(Constants.REGISTRY).orElse(getNaming(pipeline,"registry"));
         if (!registry.isBlank()) {
-            gcloud( "auth", "configure-docker", registry);
+            gcloud("Adding credentials", "auth", "configure-docker", registry);
         }
     }
 
@@ -35,14 +35,13 @@ public class LoginAction implements Action {
         return res;
     }
 
-    private void gcloud(String... args) {
+    private void gcloud(String successMarker, String... args) {
         ExternalProcess proc = new ExternalProcess(Map.of())
                 .command("gcloud", List.of(args))
                 .errorMarker("ERROR")
                 .warning("WARNING")
                 .noError("")
-                .successMarker("Adding credentials")
-                .successMarker("kubeconfig entry generated");
+                .successMarker(successMarker);
         Log.log("Executing command '"+proc.toString()+"'");
         proc.execute();
         Expect.isTrue(proc.hasSucceeded()).elseFail("Could not login to cluster");
