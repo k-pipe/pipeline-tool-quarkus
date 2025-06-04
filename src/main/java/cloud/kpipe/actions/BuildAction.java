@@ -15,7 +15,7 @@ public class BuildAction implements Action {
     public void doAction(Command command, ActionData ad) {
         for (DockerImage di : ad.getDockerImages()) {
             if (di.isBundled()) {
-                docker(di.getPath(), "build", ".", "-t", di.getImage());
+                docker(di.getPath(), "build", ".", "-t", di.getImageWithTag());
             }
         }
     }

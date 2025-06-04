@@ -163,7 +163,7 @@ public class PipelineRunner {
 	}
 
 	protected DockerImageRunner getRunner(DockerImage dockerImage) {
-		return new DockerImageRunner(dockerImage, Collections.emptyList(), true, options.getInteractive(), null, options.getPlatform());
+		return new DockerImageRunner(dockerImage, Collections.emptyList(), true, options.getInteractive(), null, options.getPlatform(), null);
 	}
 
 	private boolean login(final DockerImageRunner runner, final Path credentials) {

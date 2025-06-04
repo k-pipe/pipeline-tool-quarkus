@@ -192,18 +192,4 @@ public class PipelineYaml {
         return res;
     }
 
-    private YamlList createArgs(Map<String,byte[]> configInputs, Map<String, PipelineConnector> inputs, List<PipelineConnector> outputs) {
-        YamlList res = Yaml.list();
-        res.add(Yaml.string("--config")).add(Yaml.string("/etc/config/config.json"));
-        inputs.values().forEach(connector -> {
-            String[] source = connector.getNameAtSource().split("=");
-            res.add(Yaml.string("--"+connector.getNameAtTarget())).add(Yaml.string("/vol/"+connector.getSource().getId()+"/"+source[1]));
-        });
-        outputs.forEach(out -> {
-            String[] source = out.getNameAtSource().split("=");
-            res.add(Yaml.string("--"+source[0])).add(Yaml.string("/vol/"+out.getSource().getId()+"/"+source[1]));
-        });
-        return res;
-    }
-
 }

@@ -29,7 +29,7 @@ public class Main implements QuarkusApplication {
         )
         .command(RUN, "create a pipeline run manifest, to execute the run use command 'apply'",
             Option.withValue(O, OUTPUT, "specifies run manifest yaml file, append to pipeline definition manifest if omitted").optional(),
-            Option.withValue(P, PIPELINE, "the name of the run configuration to be used").optional(),
+            Option.withValue(P, PIPELINE, "the name of pipeline to be executed").optional(),
             Option.withValue(C, CONFIG, "the name of the run configuration to be used").optional(),
             Option.withValue(N, NAME, "the name of the pipeline run to be created").optional(),
             Option.withoutValue(T, TIMESTAMP, "if specified, the current timestamp will be appended to run name")
@@ -40,11 +40,20 @@ public class Main implements QuarkusApplication {
         .command(BUILD, "build bundled docker images")
         .command(PUSH, "push bundled docker images")
         .command(PULL, "pull all docker images (bundled, managed and generic), need to be logged in to kubernetes cluster in case there are any managed images")
-        .command(LOGIN, "log in to kubernetes cluster (from markdown file, or explicitely defined)")
+        .command(LOGIN, "log in to kubernetes cluster (from markdown file, or explicitely defined)",
+            Option.withValue(P, PIPELINE, "login to cluster defined in specified pipeline (if omitted, take last parsed pipeline)").optional(),
+            Option.withValue(N, NAMESPACE, "change to specified namespace (if omitted take namespace of pipeline, if blank do not login to any namespace)").optional()
+        )
         .command(APPLY, "apply created manifests (pipeline definitions, runs, schedules) on k8s cluster",
             Option.withoutValue(K, KEEP_EXISTING, "if the flag is set, an existing run with same name will be kept (i.e. no new run will be started), otherwise existing runs are deleted before creating a run with same name").optional()
         )
-        .command(SIMULATE, "execute specified pipeline runs on local machine using docker")
+        .command(SIMULATE, "execute specified pipeline runs on local machine using docker",
+            Option.withValue(P, PIPELINE, "the name of the pipeline to be simulated").optional(),
+            Option.withValue(W, WORKDIR, "directory in which the simulation of the pipeline run takes place").withDefault(DEFAULT_WORKDIR),
+            Option.withValue(S, START, "optional id of the step for which simulation gets started").optional(),
+            Option.withValue(E, END, "optional id of the step for which simulation ends").optional(),
+            Option.withValue(C, CREDENTIALS, "the mount string for the credentials to use (format outside:inside with absolute paths)").withDefault(DEFAULT_CREDENTIALS)
+        )
         .command(FOLLOW, "create a pipeline run manifest, to execute the run use command 'apply'",
                 Option.withValue(T, TIMEOUT, "specifies maximum time to follow runs (using unit s/m/h)").optional()
         );
@@ -76,8 +85,8 @@ public class Main implements QuarkusApplication {
             case PUSH: a = new PushAction(); break;
             case PULL: a = new PullAction(); break;
             case APPLY: a = new ApplyAction(); break;
-/*            case SIMULATE: a = new SimulateAction(); break;
-            case FOLLOW: a = new FollowAction(); break;*/
+            case SIMULATE: a = new SimulateAction(); break;
+  /*          case FOLLOW: a = new FollowAction(); break;*/
         }
         if (a != null) {
             LoggedTaskLog.logHeading(command.getKey(), 1);

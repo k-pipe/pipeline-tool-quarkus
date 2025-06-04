@@ -34,6 +34,7 @@ public class Constants {
 
     public static final String N = "n";
 
+    public static final String NAMESPACE = "namespace";
     public static final String PIPELINE = "pipeline";
 
 
@@ -47,4 +48,16 @@ public class Constants {
     public static final String T = "t";
     public static final String TIMEOUT = "timeout";
     public static final String TIMESTAMP = "timestamp";
+
+    public static final String W = "w";
+    public static final String WORKDIR = "workdir";
+    public static final String DEFAULT_WORKDIR = "simulation";
+    public static final String CREDENTIALS = "credentials";
+    public static final String DEFAULT_CREDENTIALS = "/root/.config/gcloud:/root/.config/gcloud";
+    public static final String S = "s";
+    public static final String START = "start";
+
+    public static final String E = "e";
+    public static final String END = "end";
+
 }

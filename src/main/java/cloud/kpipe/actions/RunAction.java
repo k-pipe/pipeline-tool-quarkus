@@ -17,8 +17,8 @@ public class RunAction implements Action {
 
     @Override
     public void doAction(Command command, ActionData ad) {
-        Pipeline pipeline = ad.getLatestParsedPipeline();
-        String pipelineName = command.getOptionalOptionValue(Constants.PIPELINE).orElseGet(() -> pipeline.getName());
+        String pipelineName = command.getOptionalOptionValue(Constants.PIPELINE).orElseGet(() -> ad.getLatestParsedPipeline().getName());
+        Pipeline pipeline = ad.findParsedPipeline(pipelineName);
         String configId = command.getOptionalOptionValue(Constants.CONFIG).orElse(getUniqueConfig(pipeline));
         String runId = command.getOptionalOptionValue(Constants.CONFIG).orElse(createRunId(pipeline.getName()));
         if (command.isFlagSet(Constants.TIMESTAMP)) {

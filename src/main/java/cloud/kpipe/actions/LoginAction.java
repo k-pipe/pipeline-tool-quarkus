@@ -13,11 +13,16 @@ public class LoginAction implements Action {
 
     @Override
     public void doAction(Command command, ActionData ad) {
-        Pipeline pipeline = ad.getLatestParsedPipeline();
+        String pipelineName = command.getOptionalOptionValue(Constants.PIPELINE).orElseGet(() -> ad.getLatestParsedPipeline().getName());
+        Pipeline pipeline = ad.findParsedPipeline(pipelineName);
         String cluster = getNaming(pipeline, "k8s-cluster");
         String project =  getNaming(pipeline, "k8s-project");
         String region =  getNaming(pipeline, "k8s-region");
         gcloud("container", "clusters",  "get-credentials", cluster, "--region", region, "--project", project);
+        String namespace = command.getOptionalOptionValue(Constants.NAMESPACE).orElse(pipeline.getNamespace());
+        if (!namespace.isBlank()) {
+            kubectl("config", "set-context", "--current", "--namespace="+namespace);
+        }
     }
 
     private String getNaming(Pipeline pipeline, String key) {
@@ -36,4 +41,11 @@ public class LoginAction implements Action {
         Expect.isTrue(proc.hasSucceeded()).elseFail("Could not login to cluster");
     }
 
+    private void kubectl(String... args) {
+        ExternalProcess proc = new ExternalProcess(Map.of())
+                .command("kubectl", List.of(args));
+        Log.log("Executing command '"+proc.toString()+"'");
+        proc.execute();
+        Expect.isTrue(proc.hasSucceeded()).elseFail("Could not switch to namespace");
+    }
 }

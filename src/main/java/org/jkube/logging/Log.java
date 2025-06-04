@@ -52,6 +52,7 @@ public class Log {
 
 	public static void error(final String message, Object... parameters) {
 		LOGGER.get().log(Logger.LogLevel.ERROR, null, message, parameters);
+		System.exit(1);
 	}
 
 	public static void exception(final Throwable e, final String message, Object... parameters) {

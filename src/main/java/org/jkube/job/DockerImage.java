@@ -35,7 +35,7 @@ public class DockerImage {
 		switch (type) {
 			case BUNDLED: return image+"("+path+")";
 			case MANAGED: return image+"("+path+","+provider+","+generation+")";
-			case GENERIC: return tag == null ? image : image+":"+tag;
+			case GENERIC: return getImageWithTag();
 		}
 		return null;
 	}
@@ -46,6 +46,10 @@ public class DockerImage {
 
 	public String getImage() {
 		return image;
+	}
+
+	public String getImageWithTag() {
+		return tag == null ? image : image+":"+tag;
 	}
 
 	public String getPath() {

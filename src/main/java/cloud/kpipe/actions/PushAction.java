@@ -15,7 +15,7 @@ public class PushAction implements Action {
     public void doAction(Command command, ActionData ad) {
         for (DockerImage di : ad.getDockerImages()) {
             if (di.isBundled()) {
-                docker(di.getPath(), "push", di.getImage());
+                docker(di.getPath(), "push", di.getImageWithTag());
             }
         }
     }

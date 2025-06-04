@@ -14,7 +14,7 @@ public class PullAction implements Action {
     @Override
     public void doAction(Command command, ActionData ad) {
         for (DockerImage di : ad.getDockerImages()) {
-            docker(di.getPath(), "pull", di.getImage());
+            docker(di.getPath(), "pull", di.getImageWithTag());
         }
     }
 

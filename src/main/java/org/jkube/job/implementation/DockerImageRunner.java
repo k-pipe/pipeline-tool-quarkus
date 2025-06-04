@@ -15,30 +15,32 @@ public class DockerImageRunner {
 	protected final String dockerImageSpec;
 	protected final boolean mountDockerSock;
 	protected final boolean interactive;
+	protected final String credentialsMount;
 	protected final String gpus;
 
 	protected final String platform;
 	protected final List<String> commandlineArgs;
 
 	public DockerImageRunner(DockerImage dockerImage) {
-		this(dockerImage, Collections.emptyList(), false, false);
+		this(dockerImage, Collections.emptyList(), false, false, null);
 	}
 
-	public DockerImageRunner(DockerImage dockerImage, List<String> commandlineArgs, boolean mountDockerSock, boolean interactive) {
-		this(dockerImage, commandlineArgs, mountDockerSock, interactive, null);
+	public DockerImageRunner(DockerImage dockerImage, List<String> commandlineArgs, boolean mountDockerSock, boolean interactive, String credentialsMount) {
+		this(dockerImage, commandlineArgs, mountDockerSock, interactive, null, credentialsMount);
 	}
 
-	public DockerImageRunner(DockerImage dockerImage, List<String> commandlineArgs, boolean mountDockerSock, boolean interactive, String gpus) {
-		this(dockerImage, commandlineArgs, mountDockerSock, interactive, gpus, null);
+	public DockerImageRunner(DockerImage dockerImage, List<String> commandlineArgs, boolean mountDockerSock, boolean interactive, String gpus, String credentialsMount) {
+		this(dockerImage, commandlineArgs, mountDockerSock, interactive, gpus, null, credentialsMount);
 	}
 
-	public DockerImageRunner(DockerImage dockerImage, List<String> commandlineArgs, boolean mountDockerSock, boolean interactive, String gpus, String platform) {
-		this.dockerImageSpec = dockerImage.toString();
+	public DockerImageRunner(DockerImage dockerImage, List<String> commandlineArgs, boolean mountDockerSock, boolean interactive, String gpus, String platform, String credentialsMount) {
+		this.dockerImageSpec = dockerImage.getImageWithTag();
 		this.commandlineArgs = commandlineArgs;
 		this.mountDockerSock = mountDockerSock;
 		this.interactive = interactive;
 		this.gpus = gpus;
 		this.platform = platform;
+		this.credentialsMount = credentialsMount;
 	}
 
 	public boolean login(String username, String password) {
@@ -56,7 +58,7 @@ public class DockerImageRunner {
 	}
 
 	public boolean run(final String workdirAbsolute) {
-		log("Executing docker image {}  in {}", dockerImageSpec, workdirAbsolute);
+		log("Executing docker image {} in {} with args {}", dockerImageSpec, workdirAbsolute, commandlineArgs);
 		return onException(() -> tryRun(buildRunCommandLine(workdirAbsolute)))
 				.warn("Problem occurred running Docker process")
 				.fallback(false);
@@ -95,6 +97,10 @@ public class DockerImageRunner {
 		if (platform != null) {
 			res.add("--platform");
 			res.add(platform);
+		}
+		if ((credentialsMount != null) && (credentialsMount.length() > 0)) {
+			res.add("-v");
+			res.add(credentialsMount);
 		}
 		res.add("-v");
 		res.add(workdirAbsolute + ":" + Run.DOCKER_WORKDIR);

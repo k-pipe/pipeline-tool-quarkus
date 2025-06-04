@@ -3,8 +3,11 @@ package cloud.kpipe.pipeline;
 import com.kneissler.script.pipeline.PipelineCreator;
 import com.kneissler.script.pipeline.PipelineMarkdownWithSettings;
 import com.kneissler.script.pipeline.pipeline_v2.PipelineV2;
+import com.kneissler.util.richfile.resolver.VariableResolver;
+import org.jkube.pipeline.definition.PipelineStep;
 import org.jkube.util.Expect;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +36,10 @@ public class Pipeline {
 
     public PipelineV2 getPipeline() {
         return pipeline;
+    }
+
+    public VariableResolver getResolver() {
+        return new VariableResolver(markdown.getVariables());
     }
 
     public List<String> getPumlLines() {
@@ -78,5 +85,30 @@ public class Pipeline {
 
     public List<Schedule> getSchedules() {
         return markdown.getMatchingSchedules();
+    }
+
+    public List<PipelineStep> determineSequence(String startStep, String endStep, Map<PipelineStep, Integer> stepNumbers) {
+        List<PipelineStep> stepSequence = pipeline.determineSequence();
+        List<PipelineStep> res = new ArrayList<>();
+        int count = 0;
+        boolean foundStart = startStep == null;
+        boolean foundEnd = false;
+        for (PipelineStep s : stepSequence) {
+            count++;
+            stepNumbers.put(s, count);
+            if (s.getId().equals(startStep)) {
+                foundStart = true;
+            }
+            if (foundStart && !foundEnd) {
+                res.add(s);
+            }
+            if (s.getId().equals(endStep)) {
+                Expect.isTrue(foundStart).elseFail("end step '"+endStep+"' occurs before start step '"+startStep+"'");
+                foundEnd = true;
+            }
+        }
+        Expect.isTrue(foundStart).elseFail("start step not found: "+startStep);
+        Expect.isTrue((endStep == null) || foundEnd).elseFail("end step not found: "+endStep);
+        return res;
     }
 }
