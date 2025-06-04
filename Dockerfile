@@ -13,6 +13,7 @@ FROM google/cloud-sdk:slim
 RUN apt-get update && apt-get -y --no-install-recommends install \
     kubectl \
     google-cloud-cli-gke-gcloud-auth-plugin \
+    docker \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /usr/src/app/target/
 COPY --from=build /tmp/my-project/target/*-runner /usr/src/app/target/application
