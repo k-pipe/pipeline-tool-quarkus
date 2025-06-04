@@ -14,7 +14,6 @@ RUN apt-get update && apt-get -y --no-install-recommends install \
     kubectl \
     google-cloud-cli-gke-gcloud-auth-plugin \
  && rm -rf /var/lib/apt/lists/*
-RUN gcloud components install gke-gcloud-auth-plugin
 WORKDIR /usr/src/app/target/
 COPY --from=build /tmp/my-project/target/*-runner /usr/src/app/target/application
 RUN chmod 775 /usr/src/app/target
