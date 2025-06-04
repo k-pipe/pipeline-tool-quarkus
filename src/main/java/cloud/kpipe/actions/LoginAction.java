@@ -23,6 +23,10 @@ public class LoginAction implements Action {
         if (!namespace.isBlank()) {
             kubectl("config", "set-context", "--current", "--namespace="+namespace);
         }
+        String registry = command.getOptionalOptionValue(Constants.REGISTRY).orElse(getNaming(pipeline,"registry"));
+        if (!registry.isBlank()) {
+            gcloud("auth", "configure-docker", registry);
+        }
     }
 
     private String getNaming(Pipeline pipeline, String key) {

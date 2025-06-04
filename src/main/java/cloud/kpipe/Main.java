@@ -42,7 +42,8 @@ public class Main implements QuarkusApplication {
         .command(PULL, "pull all docker images (bundled, managed and generic), need to be logged in to kubernetes cluster in case there are any managed images")
         .command(LOGIN, "log in to kubernetes cluster (from markdown file, or explicitely defined)",
             Option.withValue(P, PIPELINE, "login to cluster defined in specified pipeline (if omitted, take last parsed pipeline)").optional(),
-            Option.withValue(N, NAMESPACE, "change to specified namespace (if omitted take namespace of pipeline, if blank do not login to any namespace)").optional()
+            Option.withValue(N, NAMESPACE, "switch to specified namespace (if omitted take namespace of pipeline, if blank do not login to any namespace)").optional(),
+            Option.withValue(R, REGISTRY, "registry to log in for docker commands, (if omitted take definition in pipeline, if blank do not login to docker registry)").optional()
         )
         .command(APPLY, "apply created manifests (pipeline definitions, runs, schedules) on k8s cluster",
             Option.withoutValue(K, KEEP_EXISTING, "if the flag is set, an existing run with same name will be kept (i.e. no new run will be started), otherwise existing runs are deleted before creating a run with same name").optional()

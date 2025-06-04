@@ -36,9 +36,9 @@ public class Constants {
 
     public static final String NAMESPACE = "namespace";
     public static final String PIPELINE = "pipeline";
+    public static final String R = "r";
 
-
-    public static final String PROJECT = "project";
+    public static final String REGISTRY = "registry";
 
     public static final String P = "p";
 
