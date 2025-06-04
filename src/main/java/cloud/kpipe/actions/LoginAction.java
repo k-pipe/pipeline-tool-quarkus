@@ -15,10 +15,10 @@ public class LoginAction implements Action {
     public void doAction(Command command, ActionData ad) {
         String pipelineName = command.getOptionalOptionValue(Constants.PIPELINE).orElseGet(() -> ad.getLatestParsedPipeline().getName());
         Pipeline pipeline = ad.findParsedPipeline(pipelineName);
-        String cluster = getNaming(pipeline, "k8s-cluster");
-        String project =  getNaming(pipeline, "k8s-project");
-        String region =  getNaming(pipeline, "k8s-region");
-        gcloud("container", "clusters",  "get-credentials", cluster, "--region", region, "--project", project);
+        String k8scluster = getNaming(pipeline, "k8s-cluster");
+        String k8sproject =  getNaming(pipeline, "k8s-project");
+        String region =  getNaming(pipeline, "region");
+        gcloud("container", "clusters",  "get-credentials", k8scluster, "--region", region, "--project", k8sproject);
         String namespace = command.getOptionalOptionValue(Constants.NAMESPACE).orElse(pipeline.getNamespace());
         if (!namespace.isBlank()) {
             kubectl("config", "set-context", "--current", "--namespace="+namespace);
