@@ -36,7 +36,7 @@ public class Command {
         return this.key.equals(key);
     }
 
-    public boolean optionAdded(String optionString) {
+    public boolean optionAdded(String optionString, LinkedList<String> argsqueue) {
         String[] split = optionString.split(OPTION_SEPARATOR, 2);
         String keyWithPrefix = split[0].trim();
         String value = split.length == 2 ? split[1].trim() : null;
@@ -44,7 +44,13 @@ public class Command {
         if (option == null) {
             return false;
         }
-        Expect.isTrue(option.hasValue() == (value != null)).elseFail("type of option mismatch (with or without value) mismatch: "+key);
+        if (option.hasValue()) {
+            if (value == null) {
+                value = argsqueue.pop();
+            }
+        } else {
+            Expect.isNull(value).elseFail("option of command "+key+" is not supposed to have a value: "+keyWithPrefix);
+        }
         addValue(option, value);
         return true;
     }

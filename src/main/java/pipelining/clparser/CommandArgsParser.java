@@ -32,21 +32,28 @@ public class CommandArgsParser {
         Command lastCommand = null;
         List<String> commonOptions = new LinkedList<>();
         Set<String> commonOptionUsed = new HashSet<>();
+        LinkedList<String> argsqueue = new LinkedList<>();
         for (String arg : args) {
+            argsqueue.add(arg);
+        }
+        while (!argsqueue.isEmpty()) {
+            String arg = argsqueue.pop();
             if (!arg.trim().startsWith("#")) {
                 Command command = getPossibleCommand(arg);
                 if (command != null) {
                     Command newCommand;
                     newCommand = command.clone();
-                    commonOptions.forEach(o -> {
-                        if (newCommand.optionAdded(o)) commonOptionUsed.add(o);
-                    });
+                    LinkedList<String> commonOptionsQueue = new LinkedList<>(commonOptions);
+                    while (!commonOptionsQueue.isEmpty()) {
+                        String o = commonOptionsQueue.pop();
+                        if (newCommand.optionAdded(o, commonOptionsQueue)) commonOptionUsed.add(o);
+                    }
                     actualCommands.add(newCommand);
                     lastCommand = newCommand;
                 } else if (lastCommand == null) {
                     commonOptions.add(arg);
                 } else {
-                    Expect.isTrue(lastCommand.optionAdded(arg)).elseFail("Unexpected option key: " + arg);
+                    Expect.isTrue(lastCommand.optionAdded(arg, argsqueue)).elseFail("Unexpected option: " + arg);
                 }
             }
         }
