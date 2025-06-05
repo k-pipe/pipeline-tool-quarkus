@@ -83,7 +83,10 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 		parameters.getRows().forEach(r -> {
 			String name = r.get(ParameterColumns.NAME);
 			String value = variablesUnused.remove(name);
-			Expect.notNull(value).elseFail("Parameter not specified in command line: "+name);
+			if (value == null) {
+				value = r.get(ParameterColumns.DEFAULT);
+			}
+			Expect.notNull(value).elseFail("Parameter has no default and is not specified in command line: "+name);
 			String allowed = r.get(ParameterColumns.VALUES);
 			Expect.isTrue(correctValue(value, allowed)).elseFail("Parameter value is not in "+allowed+": "+value);
 		});

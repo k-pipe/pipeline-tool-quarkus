@@ -1,5 +1,5 @@
 package pipelining.script.pipeline;
 
 public enum ParameterColumns {
-	NAME, VALUES, DESCRIPTION
+	NAME, VALUES, DEFAULT, DESCRIPTION
 }
