@@ -182,11 +182,9 @@ public class RunSimulator {
 
     private List<String> createArgs(PipelineStep step) {
         List<String> res = new ArrayList<>();
-        res.add("--config");
-        res.add(inputDir(step, STEP_CONTAINER).resolve("config.json").toString());
+        res.add("--config="+inputDir(step, STEP_CONTAINER).resolve("config.json").toString());
         step.getInputs().values().forEach(connector -> {
-            res.add("--"+connector.getNameAtTarget());
-            res.add(inputSubDir(connector, STEP_CONTAINER).resolve(connector.getFilename()).toString());
+            res.add("--"+connector.getNameAtTarget()+"="+inputSubDir(connector, STEP_CONTAINER).resolve(connector.getFilename()).toString());
         });
         Map<String, Set<String>> outputs = new LinkedHashMap<>();
         step.getOutputs().forEach(connector -> {
@@ -196,8 +194,7 @@ public class RunSimulator {
             outputs.get(arg).add(filename);
         });
         outputs.forEach((arg, paths) ->{
-            res.add("--"+arg);
-            res.add(paths.stream().collect(Collectors.joining(",")));
+            res.add("--"+arg+"="+paths.stream().collect(Collectors.joining(",")));
         });
         return res;
     }
