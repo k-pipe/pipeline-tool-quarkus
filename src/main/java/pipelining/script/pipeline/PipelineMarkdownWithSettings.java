@@ -21,6 +21,8 @@ import pipelining.util.Expect;
 import java.nio.file.Path;
 import java.util.*;
 
+import static pipelining.logging.Log.log;
+
 public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 
 	private static final String FACTOR_PREFIX = "*";
@@ -92,7 +94,9 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 			String allowed = r.get(ParameterColumns.VALUES);
 			Expect.isTrue(correctValue(value, allowed)).elseFail("Parameter value is not in "+allowed+": "+value);
 		});
-		Expect.isTrue(variablesUnused.isEmpty()).elseFail("Parameters were not used: "+variablesUnused.keySet());
+		if (!variablesUnused.isEmpty()) {
+			log("The following common parameters were not used: " + variablesUnused.keySet());
+		}
 	}
 
 	private Map<String, String> determineVariables(Map<String, String> parameters) {
@@ -119,9 +123,9 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 		});
 		missing.removeAll(found);
 		Expect.equal(missing.size(), 0).elseFail("Some conditionals did not get a value: "+missing);
-		Log.log("Variables after resolution:");
+		log("Variables after resolution:");
 		variables.forEach((k,v) -> {
-			Log.log("   "+k+"="+v);
+			log("   "+k+"="+v);
 		});
 		return variables;
 	}
