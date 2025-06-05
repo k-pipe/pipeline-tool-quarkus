@@ -62,8 +62,9 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 	public PipelineMarkdownWithSettings(final Path includeRoot, final Path markdownPath,
 			final boolean resolve, final Map<String, String> parameters) {
 		super(includeRoot, markdownPath, resolve, parameters);
-		readTables(parameters.keySet());
+		readTables();
 		checkParametersCorrectAndEnhanceWithDefaults(parameters);
+		readTablesWithParameterColumns(parameters.keySet());
 		variables = determineVariables(parameters);
 		runConfigurations = determineRunConfigurations(variables);
 		matchingSchedules = determineSchedules(parameters, variables);
@@ -147,19 +148,25 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 		return allowedValues.equals(WILDCARD) || List.of(allowedValues.split(",")).contains(value);
 	}
 
-	private void readTables(Set<String> parameterKeys) {
+	private void readTables() {
 		parameters = expectTable(ParameterColumns.values(), false, SETTINGS, PARAMETERS);
 		constants = expectTable(ConstantsColumns.values(), false, SETTINGS, CONSTANTS);
-		List<String> conditionalColumns = new LinkedList<>();
-		Arrays.stream(ConstantsColumns.values()).forEach(col -> conditionalColumns.add(col.toString()));
-		conditionalColumns.addAll(parameterKeys);
-		conditionals = readTablesInSubsections(conditionalColumns, true, SETTINGS, CONDITIONALS);
 		namingConventions = expectTable(NamingConventionColumns.values(), false, SETTINGS, NAMING_CONVENTIONS);
-		List<String> scheduledColumns = new LinkedList<>();
-		Arrays.stream(SchedulesColumns.values()).forEach(col -> scheduledColumns.add(col.toString()));
-		scheduledColumns.addAll(parameterKeys);
-		schedules = expectStringTable(scheduledColumns, true, SCHEDULES);
 		resources = expectTable(ResourceColumns.values(), true, RESOURCES);
+	}
+
+	private void readTablesWithParameterColumns(Set<String> parameterKeys) {
+		List<String> conditionalColumns = extendedColumns(ConstantsColumns.values(), parameterKeys);
+		conditionals = readTablesInSubsections(conditionalColumns, true, SETTINGS, CONDITIONALS);
+		List<String> scheduledColumns = extendedColumns(SchedulesColumns.values(), parameterKeys);
+		schedules = expectStringTable(scheduledColumns, true, SCHEDULES);
+	}
+
+	private <E extends Enum<E>> List<String> extendedColumns(E[] values, Set<String> parameterKeys) {
+		List<String> res = new LinkedList<>();
+		Arrays.stream(values).forEach(col -> res.add(col.toString()));
+		res.addAll(parameterKeys);
+		return res;
 	}
 
 	private List<Table<String>> readTablesInSubsections(List<String> columns, boolean allowMissing, String... sectionPath) {
