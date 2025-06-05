@@ -1,14 +1,12 @@
 package pipelining.clparser;
 
-import pipelining.logging.Log;
 import pipelining.util.Expect;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static pipelining.application.Application.fail;
+import static pipelining.logging.Log.log;
 
 public class CommandArgsParser {
     private final List<Command> possibleCommands = new LinkedList<>();
@@ -83,8 +81,10 @@ public class CommandArgsParser {
     }
 
     private void checkAllCommonOptionsUsed(List<String> commonOptions, Set<String> commonOptionUsed) {
-        for (String o : commonOptions) {
-            Expect.isTrue(commonOptionUsed.contains(o)).elseFail("Option not used by any command: "+o);
+        Set<String> unused = new LinkedHashSet<>(commonOptions);
+        unused.removeAll(commonOptionUsed);
+        if (!unused.isEmpty()) {
+            log("Some option were not used by any command: "+unused.stream().collect(Collectors.joining(", ")));
         }
     }
 
@@ -93,8 +93,8 @@ public class CommandArgsParser {
     }
 
     public void showUsage() {
-        Log.log("Syntax: pipeline-tool [option]* [command [option]*]*");
-        Log.log("Possible commands:");
+        log("Syntax: pipeline-tool [option]* [command [option]*]*");
+        log("Possible commands:");
         for (Command c : possibleCommands) {
             c.logUsage();
         }
