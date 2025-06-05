@@ -13,7 +13,7 @@ public class PullAction implements Action {
     @Override
     public void doAction(Command command, ActionData ad) {
         for (String image : ad.getDockerImageNames(false)) {
-            docker( "pull", image);
+            docker( "pull",  "--platform=linux/amd64", image);
         }
     }
 

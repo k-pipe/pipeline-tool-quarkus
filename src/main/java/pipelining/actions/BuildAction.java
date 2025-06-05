@@ -14,7 +14,7 @@ public class BuildAction implements Action {
     @Override
     public void doAction(Command command, ActionData ad) {
         ad.getBundledDockerImagePathsAndNames().forEach((path, image) -> {
-            docker(path, "build", ".", "-t", image);
+            docker(path, "build", "--platform=linux/amd64", ".", "-t", image);
         });
     }
 
