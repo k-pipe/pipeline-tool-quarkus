@@ -63,7 +63,7 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 			final boolean resolve, final Map<String, String> parameters) {
 		super(includeRoot, markdownPath, resolve, parameters);
 		readTables(parameters.keySet());
-		checkParametersCorrect(parameters);
+		checkParametersCorrectAndEnhanceWithDefaults(parameters);
 		variables = determineVariables(parameters);
 		runConfigurations = determineRunConfigurations(variables);
 		matchingSchedules = determineSchedules(parameters, variables);
@@ -78,15 +78,16 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 //		return namingConventions;
 //	}
 
-	private void checkParametersCorrect(Map<String, String> variables) {
+	private void checkParametersCorrectAndEnhanceWithDefaults(Map<String, String> variables) {
 		Map<String, String> variablesUnused = new HashMap<>(variables);
 		parameters.getRows().forEach(r -> {
 			String name = r.get(ParameterColumns.NAME);
 			String value = variablesUnused.remove(name);
 			if (value == null) {
 				value = r.get(ParameterColumns.DEFAULT);
+				Expect.isFalse(value.isEmpty()).elseFail("Parameter has no default and is not specified in command line: "+name);
+				variables.put(name, value);
 			}
-			Expect.notNull(value).elseFail("Parameter has no default and is not specified in command line: "+name);
 			String allowed = r.get(ParameterColumns.VALUES);
 			Expect.isTrue(correctValue(value, allowed)).elseFail("Parameter value is not in "+allowed+": "+value);
 		});
