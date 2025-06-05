@@ -46,14 +46,16 @@ public class CommandArgsParser {
                     LinkedList<String> commonOptionsQueue = new LinkedList<>(commonOptions);
                     while (!commonOptionsQueue.isEmpty()) {
                         String o = commonOptionsQueue.pop();
-                        if (newCommand.optionAdded(o, commonOptionsQueue)) commonOptionUsed.add(o);
+                        if (newCommand.optionAdded(o, commonOptionsQueue, commonOptionUsed)) {
+                            commonOptionUsed.add(o);
+                        }
                     }
                     actualCommands.add(newCommand);
                     lastCommand = newCommand;
                 } else if (lastCommand == null) {
                     commonOptions.add(arg);
                 } else {
-                    Expect.isTrue(lastCommand.optionAdded(arg, argsqueue)).elseFail("Unexpected option: " + arg);
+                    Expect.isTrue(lastCommand.optionAdded(arg, argsqueue, null)).elseFail("Unexpected option: " + arg);
                 }
             }
         }
