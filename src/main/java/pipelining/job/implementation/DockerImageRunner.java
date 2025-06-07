@@ -2,11 +2,13 @@ package pipelining.job.implementation;
 
 import pipelining.job.DockerImage;
 import pipelining.job.Run;
+import pipelining.logging.Log;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static pipelining.logging.Log.*;
 
@@ -110,6 +112,7 @@ public class DockerImageRunner {
 		}
 		res.add(dockerImageSpec);
 		res.addAll(commandlineArgs);
+		Log.log("Command: "+res.stream().collect(Collectors.joining(" ")));
 		return res;
 	}
 
