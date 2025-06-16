@@ -92,19 +92,19 @@ public class PipelineCreator {
 		}
 	}
 
-	public String create(Map<String, String> namings, Map<String, String> variables) {
+	public String create(Map<String, String> variables) {
 		//uploadPUML();
 		uploadInputs();
 		if (pipeline.isMultiBatch()) {
 			final Collection<StepGroup> groups = pipeline.determineSequence(true, groupCombined);
 			List<PipelineStep> steps = getSteps(groups);
 			uploadScript(createProcessBatchScript(steps));
-			return uploadScript(createBatcherScript(steps, namings, variables));
+			return uploadScript(createBatcherScript(steps, variables));
 		}
 		if (isIOPipeline()) {
 			return uploadScript(createIOPipelineScript());
 		}
-		return createFullPipelineYaml(namings, variables);
+		return createFullPipelineYaml(variables);
 	}
 
 	private void uploadPUML() {
@@ -127,8 +127,8 @@ public class PipelineCreator {
 		return pipeline.getInput() != null;
 	}
 
-	private String createBatcherScript(final List<PipelineStep> allSteps, Map<String, String> naming, Map<String, String> variables) {
-		PipelineYaml res = new PipelineYaml(naming, variables);
+	private String createBatcherScript(final List<PipelineStep> allSteps, Map<String, String> variables) {
+		PipelineYaml res = new PipelineYaml(variables);
 		res.setName(PIPELINE);
 		res.setDescription(String.join(" ", pipeline.getDescription()));
 		List<PipelineStep> steps = pipeline.determineUnbatchedSteps(allSteps);
@@ -195,8 +195,8 @@ public class PipelineCreator {
 		return "";
 	}
 
-	private String createFullPipelineYaml(Map<String, String> naming, Map<String, String> variables) {
-		PipelineYaml res = new PipelineYaml(naming, variables);
+	private String createFullPipelineYaml(Map<String, String> variables) {
+		PipelineYaml res = new PipelineYaml(variables);
 		res.setName(PIPELINE);
 		res.setDescription(String.join(" ", pipeline.getDescription()));
 		// all steps

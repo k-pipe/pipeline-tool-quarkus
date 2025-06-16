@@ -35,7 +35,7 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 	public static final String MULTI_BATCH = "MultiBatch";
 	public static final String SETTINGS = "Settings";
 	public static final String PARAMETERS = "Parameters";
-	public static final String CONSTANTS = "Constants";
+	public static final String METADATA = "Metadata";
 	public static final String CONDITIONALS = "Conditionals";
 	public static final String SCHEDULES = "Schedules";
 	public static final String RESOURCES = "Resources";
@@ -43,15 +43,16 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 	private static final String ENABLED = "X";
 	private static final Set<String> EXCLUDED_NAMINGS = Set.of(
 			PipelineMarkdownWithSettings.BUNDLED_IMAGE_PATTERN_KEY,
-			PipelineMarkdownWithSettings.MANAGE_NAMESPACE_PATTERN_KEY
-	);
+			PipelineMarkdownWithSettings.MANAGE_NAMESPACE_PATTERN_KEY,
+			PipelineMarkdownWithSettings.PATTERN_VAR_PROVIDER,
+			PipelineMarkdownWithSettings.PATTERN_VAR_IMAGE_NAME
+			);
 	private static final String DEFAULT_RUN_CONFIG_NAME = "run";
 
 	private Table<ConstantsColumns> constants;
 	private Table<ParameterColumns> parameters;
 
 	private List<Table<String>> conditionals;
-	private Table<NamingConventionColumns> namingConventions;
 	private Table<String> schedules;
 	private Table<ResourceColumns> resources;
 
@@ -123,10 +124,10 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 		});
 		missing.removeAll(found);
 		Expect.equal(missing.size(), 0).elseFail("Some conditionals did not get a value: "+missing);
-		log("Variables after resolution:");
+		/*log("Variables after resolution:");
 		variables.forEach((k,v) -> {
 			log("   "+k+"="+v);
-		});
+		});*/
 		return variables;
 	}
 
@@ -153,15 +154,15 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 	}
 
 	private void readTables() {
-		parameters = expectTable(ParameterColumns.values(), false, SETTINGS, PARAMETERS);
-		constants = expectTable(ConstantsColumns.values(), false, SETTINGS, CONSTANTS);
-		namingConventions = expectTable(NamingConventionColumns.values(), false, SETTINGS, NAMING_CONVENTIONS);
+		parameters = expectTable(ParameterColumns.values(), false, GENERAL_SETUP, PARAMETERS);
+		constants = expectTable(ConstantsColumns.values(), false, METADATA);
+		//namingConventions = expectTable(NamingConventionColumns.values(), false, GENERAL_SETUP, NAMING_CONVENTIONS);
 		resources = expectTable(ResourceColumns.values(), true, RESOURCES);
 	}
 
 	private void readTablesWithParameterColumns(Set<String> parameterKeys) {
 		List<String> conditionalColumns = extendedColumns(ConstantsColumns.values(), parameterKeys);
-		conditionals = readTablesInSubsections(conditionalColumns, true, SETTINGS, CONDITIONALS);
+		conditionals = readTablesInSubsections(conditionalColumns, true, SETTINGS);
 		List<String> scheduledColumns = extendedColumns(SchedulesColumns.values(), parameterKeys);
 		schedules = expectStringTable(scheduledColumns, true, SCHEDULES);
 	}
@@ -174,11 +175,13 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 	}
 
 	private List<Table<String>> readTablesInSubsections(List<String> columns, boolean allowMissing, String... sectionPath) {
-		MarkdownSection section = expectSection(sectionPath);
+		MarkdownSection section = tryGetSection(sectionPath);
 		List<Table<String>> res = new LinkedList<>();
-		for (MarkdownSection sub : section.getSubSections()) {
-			MarkdownElement element = sub.expectElement(ElementType.TABLE);
-			res.add(new Table<>(new ParagraphScanner(element.getLines()), columns, allowMissing));
+		if (section != null) {
+			for (MarkdownSection sub : section.getSubSections()) {
+				MarkdownElement element = sub.expectElement(ElementType.TABLE);
+				res.add(new Table<>(new ParagraphScanner(element.getLines()), columns, allowMissing));
+			}
 		}
 		return res;
 	}
@@ -310,21 +313,18 @@ public class PipelineMarkdownWithSettings extends PipelineMarkdownV2 {
 		}
 	}
 
-	public Map<String, String> getNamings(Map<String, String> variables) {
-		Map<String, String> variablesAndNamings = new LinkedHashMap<>(variables);
-		VariableResolver resolver = new VariableResolver(variablesAndNamings);
-		Map<String,String> res = new LinkedHashMap<>();
+	public void extendNamingConventions() {
+		VariableResolver resolver = new VariableResolver(variables);
+		EXCLUDED_NAMINGS.forEach(ex -> variables.put(ex, "${"+ex+"}"));
+
 		namingConventions.getRows().forEach(row -> {
 			String key = row.get(NamingConventionColumns.NAME);
 			String value = row.get(NamingConventionColumns.VALUE);
-			if (!EXCLUDED_NAMINGS.contains(key)) {
+			//if (!EXCLUDED_NAMINGS.contains(key)) {
 				String resolved = resolver.substituteVariables(value);
-				res.put(key, resolved);
-				// make useable by subsequent namings
-				variablesAndNamings.put(key, resolved);
-			}
+				variables.put(key, resolved);
+			//}
 		});
-		return res;
 	}
 
 	public List<Schedule> getMatchingSchedules() {

@@ -20,6 +20,10 @@ public class Table<E> {
 	}
 
 	public Table(ParagraphScanner scanner, List<E> columns, boolean allowMissingColumns) {
+		this(scanner, columns, allowMissingColumns, false);
+	}
+
+	public Table(ParagraphScanner scanner, List<E> columns, boolean allowMissingColumns, boolean parseTSV) {
 		rows = new ArrayList<>();
 		if (!scanner.hasNextLine()) {
 			columnSequence = List.of();
@@ -29,24 +33,26 @@ public class Table<E> {
 		while (line.isEmpty()) {
 			line = scanner.nextLine().trim();
 		}
-		columnSequence = parseHeader(line,columns, allowMissingColumns);
+		columnSequence = parseHeader(line,columns, allowMissingColumns, parseTSV);
 		//System.out.println("Columns: "+columnSequence);
-		line = scanner.nextLine().trim();
-		expectSeparator(line, columnSequence.size());
+		if (!parseTSV) {
+			line = scanner.nextLine().trim();
+			expectSeparator(line, columnSequence.size());
+		}
 		boolean done = false;
 		while(!done) {
 			line = scanner.hasNextLine() ? scanner.nextLine() : "";
 			done = line.isEmpty();
 			if (!done) {
-				addRow(line, columnSequence, allowMissingColumns);
+				addRow(line, columnSequence, allowMissingColumns, parseTSV);
 			}
 		}
 	}
 
-	private List<E> parseHeader(String line, List<E> columns, boolean allowMissingColumns) {
+	private List<E> parseHeader(String line, List<E> columns, boolean allowMissingColumns, boolean tabseparated) {
 		List<E> columnsClone = new ArrayList<>(columns);
 		List<E> res = new ArrayList<>();
-		for (String s : parseLine(line)) {
+		for (String s : parseLine(line, tabseparated)) {
 			res.add(find(columnsClone, s));
 		}
 		if (!allowMissingColumns && !columnsClone.isEmpty()) {
@@ -67,8 +73,8 @@ public class Table<E> {
 		throw new RuntimeException("No such column: "+string);
 	}
 
-	private void addRow(String line, List<E> columnSequence, boolean allowMissingColumns) {
-		List<String> items = parseLine(line);
+	private void addRow(String line, List<E> columnSequence, boolean allowMissingColumns, boolean tabseparated) {
+		List<String> items = parseLine(line, tabseparated);
 		if ((items.size() > columnSequence.size()) || ((items.size() < columnSequence.size()) && !allowMissingColumns)) {
 			throw new RuntimeException("expected "+columnSequence.size()+" items in row, found "+items.size()+": ");
 		}
@@ -88,7 +94,7 @@ public class Table<E> {
 	}
 
 	private void expectSeparator(String line, int num) {
-		List<String> items = parseLine(line);
+		List<String> items = parseLine(line, false);
 		if (items.size() != num) {
 			throw new RuntimeException("expected "+num+" items in row, found "+items.size());
 		}
@@ -99,19 +105,25 @@ public class Table<E> {
 		}
 	}
 
-	private List<String> parseLine(String line) {
-		if (line.startsWith("|")) {
-			line = line.substring(1);
-		}
-		if (line.endsWith("|")) {
-			line = line.substring(0, line.length()-1);
-		}
+	private List<String> parseLine(String line, boolean tabSeparated) {
 		List<String> res = new ArrayList<>();
-		for (String s : line.split("\\|")) {
-			String st = s.trim();
-			//if (!st.isEmpty()) {
-			res.add(st);
-			//}
+		if (tabSeparated) {
+			for (String s : line.split("\t")) {
+				res.add(s.trim());
+			}
+		} else {
+			if (line.startsWith("|")) {
+				line = line.substring(1);
+			}
+			if (line.endsWith("|")) {
+				line = line.substring(0, line.length() - 1);
+			}
+			for (String s : line.split("\\|")) {
+				String st = s.trim();
+				//if (!st.isEmpty()) {
+				res.add(st);
+				//}
+			}
 		}
 		return res;
 	}

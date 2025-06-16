@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# invokes pipelining tool
+#
+docker run \
+  -it \
+  --platform=linux/amd64 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v ~/.config/gcloud:/root/.config/gcloud \
+  -v $PWD:/workdir \
+  pipelining/tool \
+  --workdir $PWD \
+  --credentials ~/.config/gcloud:/root/.config/gcloud \
+  parse -i $*

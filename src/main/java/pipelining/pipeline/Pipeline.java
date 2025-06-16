@@ -18,15 +18,13 @@ public class Pipeline {
     private final PipelineMarkdownWithSettings markdown;
     private final PipelineV2 pipeline;
     private final List<String> pumlLines;
-    private final Map<String, String> namings;
     private final Map<String, String> variables;
     private final Map<String, RunConfig> runConfigs = new LinkedHashMap<>();
 
-    public Pipeline(PipelineMarkdownWithSettings markdown, PipelineV2 pipeline, List<String> pumlLines, Map<String, String> namings, Map<String, String> variables) {
+    public Pipeline(PipelineMarkdownWithSettings markdown, PipelineV2 pipeline, List<String> pumlLines, Map<String, String> variables) {
         this.markdown = markdown;
         this.pipeline = pipeline;
         this.pumlLines = pumlLines;
-        this.namings = namings;
         this.variables = variables;
     }
 
@@ -47,7 +45,7 @@ public class Pipeline {
     }
 
     public Map<String, String> getNamings() {
-        return namings;
+        return variables;
     }
 
     public Map<String, RunConfig> getRunConfigs() {
@@ -63,7 +61,7 @@ public class Pipeline {
     }
 
     public String createManifest() {
-        return new PipelineCreator(pipeline, pumlLines, null,  null, false).create(namings, variables);
+        return new PipelineCreator(pipeline, pumlLines, null,  null, false).create(variables);
     }
 
     public String getNamespace() {
@@ -71,8 +69,8 @@ public class Pipeline {
     }
 
     private String expectNaming(String key) {
-        Expect.isTrue(namings.containsKey(key)).elseFail("Naming convention is not specified: "+key);
-        return namings.get(key);
+        Expect.isTrue(variables.containsKey(key)).elseFail("Naming convention is not specified: "+key);
+        return variables.get(key);
     }
 
     public String getVersion() {

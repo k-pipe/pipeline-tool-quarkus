@@ -53,7 +53,11 @@ public class VariableResolver implements Resolver {
             } else {
                 String value = variables.get(var);
                 Expect.notNull(value).elseFail("The variable is not defined: "+var);
+                String oldremain = remain;
                 remain = Macro.replace(remain, start, end, value);
+                if (remain.equals(oldremain)) {
+                    break;
+                }
             }
         }
         result.append(remain);

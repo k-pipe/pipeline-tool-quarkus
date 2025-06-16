@@ -95,16 +95,16 @@ public class ParseAction implements Action {
     private Pipeline compile(Path input, Path output, Map<String, String> parameters, ActionData ad) {
         Log.log("Compiling "+input+" to "+output);
         PipelineMarkdownWithSettings markdown = parseMarkdown(input, parameters);
+        markdown.extendNamingConventions();
         Map<String, String> variables = markdown.getVariables();
         PipelineV2 pipeline = markdown.createPipeline(variables);
         pipeline.getSteps().forEach(s -> ad.addDockerImage(input, s.getDockerImage()));
         List<String> pumlLines = markdown.getPipelineUMLLines();
-        Map<String,String> namings = markdown.getNamings(variables);
-        Log.log("Naming conventions after resolution:");
-        namings.forEach((k,v) -> {
+        Log.log("Variables (after resolving naming conventions):");
+        variables.forEach((k,v) -> {
             Log.log("   "+k+"="+v);
         });
-        return new Pipeline(markdown, pipeline, pumlLines, namings, variables);
+        return new Pipeline(markdown, pipeline, pumlLines, variables);
     }
 
     private PipelineMarkdownWithSettings parseMarkdown(final Path markdownPath, Map<String, String> parameters) {

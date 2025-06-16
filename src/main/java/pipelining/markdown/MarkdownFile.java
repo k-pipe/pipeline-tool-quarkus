@@ -2,6 +2,9 @@ package pipelining.markdown;
 
 import pipelining.codegen.ParagraphScanner;
 import pipelining.codegen.Table;
+import pipelining.logging.Log;
+import pipelining.util.Expect;
+import pipelining.util.ExternalTable;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,9 +33,21 @@ public class MarkdownFile {
 
 	public <C extends Enum<C>> Table<C> expectTable(final C[] values, final boolean allowMissing, final String... sectionPath) {
 		MarkdownSection section = expectSection(sectionPath);
-		MarkdownElement element = section.expectElement(ElementType.TABLE);
+		List<MarkdownLink> links = section.getLinks();
+		Expect.isTrue(links.size() <= 1).elseFail("Multiple links were specified in section for which a table is expected");
 		List<C> valueList = new ArrayList<>(List.of(values));
+		if (links.size() == 1) {
+			return new Table<>(getScannerFromLink(links.get(0)), valueList, allowMissing, true);
+		}
+		MarkdownElement element = section.expectElement(ElementType.TABLE);
 		return new Table<>(new ParagraphScanner(element.getLines()), valueList, allowMissing);
+	}
+
+	private ParagraphScanner getScannerFromLink(MarkdownLink link) {
+		Log.log("Reading external table "+link.getName());
+		List<String> lines = ExternalTable.read(link.getReference());
+		Log.log("Obtained "+lines.size()+" lines from "+link.getReference());
+		return new ParagraphScanner(lines);
 	}
 
 	public <C extends Enum<C>> Table<C> optionalTable(final C[] values, final boolean allowMissing, final String... sectionPath) {

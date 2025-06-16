@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 public class PipelineYaml {
 
-    private final Map<String, String> naming;
     private final Map<String, String> variables;
     private String description;
     private String name;
@@ -25,13 +24,12 @@ public class PipelineYaml {
 
     private PipelineConnector batchingConnector;
 
-    public PipelineYaml(Map<String, String> naming, Map<String, String> variables) {
-        this.naming = naming;
+    public PipelineYaml(Map<String, String> variables) {
         this.variables = variables;
     }
 
     private String naming(String key) {
-        String res = naming.get(key);
+        String res = variables.get(key);
         Expect.notNull(res).elseFail("No such naming convention was set: "+key);
         return res;
     }
@@ -153,7 +151,7 @@ public class PipelineYaml {
         return Yaml.list().add(Yaml.map()
             .add("stepPattern", "*")
             .add("jobSpec", Yaml.map()
-                .add("serviceAccountName", naming("serviceAccount"))
+                .add("serviceAccountName", naming("k8s-serviceAccount"))
                 .add("backoffLimit", 0)
                 .add("imagePullPolicy", "Always")
             )
@@ -165,10 +163,10 @@ public class PipelineYaml {
                 .add("workloadSpec", Yaml.map()
                         .add("id", "archive")
                         .add("image", createImage("google/cloud-sdk:slim"))
-                        .add("command", "sh", "-c", naming.get("stepFinalizerCommand"))
+                        .add("command", "sh", "-c", variables.get("stepFinalizerCommand"))
                 )
                 .add("jobSpec", Yaml.map()
-                        .add("serviceAccountName", naming.get("serviceAccount"))
+                        .add("serviceAccountName", variables.get("k8s-serviceAccount"))
                         .add("backoffLimit", 1)
                 )
        );

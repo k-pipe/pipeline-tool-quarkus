@@ -1,6 +1,7 @@
 package pipelining.markdown;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MarkdownSection {
@@ -80,5 +81,15 @@ public class MarkdownSection {
 			}
 		}
 		return num;
+	}
+
+	public List<MarkdownLink> getLinks() {
+		List<MarkdownLink> res = new LinkedList<>();
+		getElements().forEach(e -> {
+			if (e.getType().equals(ElementType.PARAGRAPH)) {
+				e.getLinks().forEach(res::add);
+			}
+		});
+		return res;
 	}
 }

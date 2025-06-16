@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 public class MarkdownElement {
 
-	private static final String GROUP = "([\\w/.\\-_]+)";
+	private static final String GROUP = "([^\\]\\)]+)";
 	private static final Pattern LINK_PATTERN = Pattern.compile(".*\\["+GROUP+"\\]\\("+GROUP+"\\).*");
 
 	private final ElementType type;
@@ -30,7 +30,7 @@ public class MarkdownElement {
 		if (matcher.matches()) {
 			String name = matcher.group(1);
 			String ref = matcher.group(2);
-			Log.log("Link detected: "+name+" --> "+ref);
+			Log.debug("Link detected: "+name+" --> "+ref);
 			links.add(new MarkdownLink(name, ref));
 		}
 	}

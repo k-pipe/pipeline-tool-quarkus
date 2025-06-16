@@ -75,7 +75,7 @@ public class PipelineRunner {
 
 	private String uploadPipeline(PipelineV2 pipeline, List<String> pumlLines, String jwtToken) {
 		String urlPrefix = "http://"+options.getCluster()+"/service/"+options.getNamespace()+"/";
-		return new PipelineCreator(pipeline, pumlLines, urlPrefix, jwtToken == null ? "" : "?jwt="+jwtToken, options.getGroupCombined()).create(null, null);
+		return new PipelineCreator(pipeline, pumlLines, urlPrefix, jwtToken == null ? "" : "?jwt="+jwtToken, options.getGroupCombined()).create(null);
 	}
 
 	public void runLocally() {

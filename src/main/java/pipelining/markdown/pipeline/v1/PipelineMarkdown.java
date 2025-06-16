@@ -29,19 +29,19 @@ public class PipelineMarkdown extends MarkdownFile {
 	public static final String CONFIG = "config.json";
 	public static final String WILDCARD = "*";
 
-	public static final String SETTINGS = "Settings";
+	public static final String GENERAL_SETUP = "General Setup";
 
 	public static final String NAMING_CONVENTIONS = "Naming Conventions";
-	private static final String PATTERN_VAR_IMAGE_NAME = "imagePath";
+	public static final String PATTERN_VAR_IMAGE_NAME = "imagePath";
 	private static final String PATTERN_VAR_GENERATION = "generation";
-	private static final String PATTERN_VAR_PROVIDER = "provider";
+	public static final String PATTERN_VAR_PROVIDER = "provider";
 	public static final String BUNDLED_IMAGE_PATTERN_KEY = "bundledImageName";
 	public static final String MANAGE_NAMESPACE_PATTERN_KEY = "managedImageNamespace";
 
 	private Table<BundledImageColumns> bundledImages;
 	private Table<ManagedImageColumns> managedImages;
 	private Table<GenericImageColumns> genericImages;
-	private Table<NamingConventionColumns> namingConventions;
+	protected Table<NamingConventionColumns> namingConventions;
 	private PipelinePlantUML plantUML;
 
 	public PipelineMarkdown(final Path path, List<String> lines) {
@@ -76,7 +76,7 @@ public class PipelineMarkdown extends MarkdownFile {
 		bundledImages = optionalTable(BundledImageColumns.values(), false, DOCKER_IMAGES, BUNDLED);
 		managedImages = optionalTable(ManagedImageColumns.values(), false, DOCKER_IMAGES, MANAGED);
 		genericImages = optionalTable(GenericImageColumns.values(), false, DOCKER_IMAGES, GENERIC);
-		namingConventions = expectTable(NamingConventionColumns.values(), false, SETTINGS, NAMING_CONVENTIONS);
+		namingConventions = expectTable(NamingConventionColumns.values(), false, GENERAL_SETUP, NAMING_CONVENTIONS);
 	}
 
 	protected PipelinePumlParser createParser() {
@@ -118,7 +118,7 @@ public class PipelineMarkdown extends MarkdownFile {
 
 	private void addInput(final String stepId, final String inputName, List<String> lines) {
 		byte[] data = String.join("\n", lines).getBytes(StandardCharsets.UTF_8);
-		Log.log("Read {} lines ({} bytes) for input {} of step {}", lines.size(), data.length, inputName, stepId);
+		Log.debug("Read {} lines ({} bytes) for input {} of step {}", lines.size(), data.length, inputName, stepId);
 		expectStep(stepId).setConfigInput(inputName, data);
 	}
 
