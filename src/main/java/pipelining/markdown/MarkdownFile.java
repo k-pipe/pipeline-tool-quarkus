@@ -45,8 +45,7 @@ public class MarkdownFile {
 
 	private ParagraphScanner getScannerFromLink(MarkdownLink link) {
 		Log.log("Reading external table "+link.getName());
-		List<String> lines = ExternalTable.read(link.getReference());
-		Log.log("Obtained "+lines.size()+" lines from "+link.getReference());
+		List<String> lines = ExternalTable.read(link.getName(), link.getReference());
 		return new ParagraphScanner(lines);
 	}
 

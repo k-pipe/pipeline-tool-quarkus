@@ -21,7 +21,7 @@ import static pipelining.logging.Log.*;
 
 public class PipelineRunner {
 
-	private static final String WORKDIR = "/Users/ebadmin/git/github/kpipe/pipeline-tool"; // TODO "/workdir";
+	public static final String WORKDIR =  "/workdir";
 
 	private static final String INPUT_DIR = "input";
 	private static final String OUTPUT_DIR = "output";
