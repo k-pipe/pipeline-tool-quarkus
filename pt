@@ -1,5 +1,9 @@
 #!/bin/sh
 #
+# pulls pipelining tool
+#
+docker pull --platform=linux/amd64 pipelining/tool
+#
 # invokes pipelining tool
 #
 docker run \
