@@ -18,7 +18,7 @@ public class SimulateAction implements Action {
         String startStep = command.getOptionalOptionValue(Constants.BEGIN).orElse(null);
         String endStep = command.getOptionalOptionValue(Constants.END).orElse(null);
         String credentialsMount = command.getOptionValue(Constants.CREDENTIALS);
-        RunSimulator simulator = new RunSimulator(workdir, simulationdir, startStep, endStep, credentialsMount);
+        RunSimulator simulator = new RunSimulator(workdir, simulationdir, startStep, endStep, credentialsMount, pipeline);
         simulator.runLocally(pipeline);
     }
 

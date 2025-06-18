@@ -11,6 +11,7 @@ public class Constants {
     public static final String RUN = "run";
     public static final String SCHEDULE = "schedule";
     public static final String LOGIN = "login";
+    public static final String CLEAN = "clean";
     public static final String BUILD = "build";
     public static final String PUSH = "push";
     public static final String PULL = "pull";

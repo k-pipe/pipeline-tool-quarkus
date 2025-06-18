@@ -4,6 +4,7 @@ import pipelining.pipeline.Pipeline;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import pipelining.script.pipeline.localrunner.PipelineRunner;
 import pipelining.ui.UIHandler;
 import pipelining.util.richfile.resolver.VariableResolver;
 import pipelining.job.implementation.DockerImageRunner;
@@ -11,6 +12,7 @@ import pipelining.pipeline.definition.PipelineConnector;
 import pipelining.pipeline.definition.PipelineStep;
 
 import java.io.File;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -20,10 +22,10 @@ import java.util.stream.Collectors;
 import static pipelining.logging.Log.*;
 import static pipelining.simulator.RunSimulator.InceptionLevel.*;
 import static pipelining.application.Application.fail;
-import static pipelining.job.Run.DOCKER_WORKDIR;
 
 public class RunSimulator {
 
+    private static final String DOCKER_WORKDIR = PipelineRunner.WORKDIR;
     private final String INPUT_FOLDER = "input";
     private final String OUTPUT_FOLDER = "output";
 
@@ -35,13 +37,15 @@ public class RunSimulator {
     private UIHandler uiHandler;
     private final Map<PipelineStep, Integer> stepNumbers = new LinkedHashMap<>();
 
+    private final Pipeline pipeline;
 
-    public RunSimulator(String workdir, String simulationdir, String startStep, String endStep, String credentialsMount) {
+    public RunSimulator(String workdir, String simulationdir, String startStep, String endStep, String credentialsMount, Pipeline pipeline) {
         this.workdir = workdir;
         this.simulationdir = simulationdir;
         this.startStep = startStep;
         this.endStep = endStep;
         this.credentialsMount = credentialsMount;
+        this.pipeline = pipeline;
     }
 
     public void setUiHandler(UIHandler uiHandler) {
@@ -167,7 +171,7 @@ public class RunSimulator {
     }
 
     private boolean runJob(final PipelineStep step) {
-        DockerImageRunner runner = getRunner(step);
+        DockerImageRunner runner = getRunner(step, pipeline);
         return runner.run(stepPath(step, HOST).toAbsolutePath().toString());
     }
 
@@ -176,7 +180,7 @@ public class RunSimulator {
         removeRecursively(outputDir(step, TOOL_CONTAINER).toFile());
     }
 
-    protected DockerImageRunner getRunner(PipelineStep step) {
+    protected DockerImageRunner getRunner(PipelineStep step, Pipeline pipeline) {
         return new DockerImageRunner(step.getDockerImage(), createArgs(step), false, false, null, credentialsMount);
     }
 

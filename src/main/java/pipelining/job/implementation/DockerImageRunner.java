@@ -1,13 +1,20 @@
 package pipelining.job.implementation;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import pipelining.application.Application;
 import pipelining.job.DockerImage;
-import pipelining.job.Run;
 import pipelining.logging.Log;
+import pipelining.pipeline.Pipeline;
+import pipelining.script.pipeline.localrunner.PipelineRunner;
+import pipelining.util.Expect;
+import pipelining.util.ExternalProcess;
+import pipelining.util.ExternalTable;
+import pipelining.util.FileCache;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static pipelining.logging.Log.*;
@@ -23,7 +30,7 @@ public class DockerImageRunner {
 	protected final String platform;
 	protected final List<String> commandlineArgs;
 
-	public DockerImageRunner(DockerImage dockerImage) {
+	public DockerImageRunner(DockerImage dockerImage, Pipeline pipeline) {
 		this(dockerImage, Collections.emptyList(), false, false, null);
 	}
 
@@ -36,13 +43,85 @@ public class DockerImageRunner {
 	}
 
 	public DockerImageRunner(DockerImage dockerImage, List<String> commandlineArgs, boolean mountDockerSock, boolean interactive, String gpus, String platform, String credentialsMount) {
-		this.dockerImageSpec = dockerImage.getImageWithTag();
+		this.dockerImageSpec = getImage(dockerImage);
 		this.commandlineArgs = commandlineArgs;
 		this.mountDockerSock = mountDockerSock;
 		this.interactive = interactive;
 		this.gpus = gpus;
 		this.platform = platform;
 		this.credentialsMount = credentialsMount;
+	}
+
+	private String getImage(DockerImage dockerImage) {
+		if (dockerImage.isManaged()) {
+			String provider = dockerImage.getProvider();
+			Integer generation = dockerImage.getGeneration();
+			String managedImageName = dockerImage.getImage();
+			return lookupImageWithTag(provider, managedImageName, generation);
+		} else {
+			return dockerImage.getImageWithTag();
+		}
+	}
+
+	private String lookupImageWithTag(String provider, String managedImageName, Integer generation) {
+		String name = "pmi-"+provider+"-"+managedImageName;
+		if (generation != null)  {
+			name += "-gen"+generation;
+		}
+		name += ".yaml";
+		List<String> lines;
+		if (FileCache.exists(name)) {
+			lines = FileCache.read(name);
+		} else {
+			Log.log("Looking up image version for " + name);
+			ExternalProcess proc = new ExternalProcess(Map.of()).command("kubectl", List.of("get", "pmi", managedImageName, "-n", provider, "-o", "jsonpath={.spec.generations}"));
+			proc.execute();
+			Expect.isTrue(proc.hasSucceeded()).elseFail("Could not get managed pipeline docker image version");
+			lines = proc.getOutput();
+			FileCache.write(name, lines);
+		}
+		Expect.size(lines, 1).elseFail("Expected exactly one line, got: "+lines.size());
+		Map<Integer,String> generations = parseImageGenerations(lines.get(0));
+		if (generation == null) {
+			OptionalInt maxGen = generations.keySet().stream().mapToInt(g -> g).max();
+			Expect.isTrue(maxGen.isPresent()).elseFail("no generations specified");
+			generation = maxGen.getAsInt();
+		}
+		Expect.isTrue(generations.containsKey(generation)).elseFail("No such generation defined: "+generation);
+		return generations.get(generation);
+	}
+
+	private Map<Integer, String> parseImageGenerations(String json) {
+		Map<Integer, String> res = new HashMap<>();
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			JsonNode node = mapper.readTree(json);
+			Expect.isTrue(node.isArray()).elseFail("Expected an array, got: "+node);
+			Iterator<JsonNode> i = node.elements();
+			while (i.hasNext()) {
+				JsonNode e = i.next();
+				Integer generation = e.get("generation").asInt();
+				StringBuilder sb = new StringBuilder();
+				add(sb, e, "repository");
+				add(sb, e, "path");
+				add(sb, e, "name");
+				sb.append(":");
+				sb.append(e.get("tag").asText());
+				res.put(generation, sb.toString());
+			}
+		} catch (JsonProcessingException e) {
+			Application.fail("Could not parse json: "+e);
+		}
+		return res;
+	}
+
+	private void add(StringBuilder sb, JsonNode n, String key) {
+		if (n.has(key)) {
+			if (sb.length() != 0) {
+				sb.append("/");
+			}
+			sb.append(n.get(key).asText());
+		}
 	}
 
 	public boolean login(String username, String password) {
@@ -105,7 +184,7 @@ public class DockerImageRunner {
 			res.add(credentialsMount);
 		}
 		res.add("-v");
-		res.add(hostDirAbsolute + ":" + Run.DOCKER_WORKDIR);
+		res.add(hostDirAbsolute + ":" + PipelineRunner.WORKDIR);
 		if (mountDockerSock) {
 			res.add("-v");
 			res.add("/var/run/docker.sock:/var/run/docker.sock");

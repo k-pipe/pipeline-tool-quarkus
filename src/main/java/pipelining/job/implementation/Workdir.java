@@ -1,6 +1,6 @@
 package pipelining.job.implementation;
 
-import pipelining.job.Run;
+import pipelining.script.pipeline.localrunner.PipelineRunner;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,11 +19,11 @@ public class Workdir {
 	private final Path outputPath;
 
 	public Workdir() {
-		this(Path.of(Run.DOCKER_WORKDIR));
+		this(Path.of(PipelineRunner.WORKDIR));
 	}
 
 	public Workdir(Path workdirPath) {
-		this(workdirPath.resolve(Run.DEFAULT_INPUT), workdirPath.resolve(Run.DEFAULT_OUTPUT));
+		this(workdirPath.resolve(PipelineRunner.INPUT_DIR), workdirPath.resolve(PipelineRunner.OUTPUT_DIR));
 	}
 
 	public Workdir(Path inputPath, Path outputPath) {

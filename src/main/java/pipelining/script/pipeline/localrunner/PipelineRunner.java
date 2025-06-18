@@ -5,8 +5,6 @@ import pipelining.script.pipeline.PipelineMarkdownWithSettings;
 import pipelining.script.pipeline.pipeline_v2.PipelineV2;
 import pipelining.ui.UIHandler;
 import pipelining.http.Http;
-import pipelining.job.DockerImage;
-import pipelining.job.implementation.DockerImageRunner;
 import pipelining.pipeline.definition.PipelineConnector;
 import pipelining.pipeline.definition.PipelineStep;
 
@@ -23,8 +21,8 @@ public class PipelineRunner {
 
 	public static final String WORKDIR =  "/workdir";
 
-	private static final String INPUT_DIR = "input";
-	private static final String OUTPUT_DIR = "output";
+	public static final String INPUT_DIR = "input";
+	public static final String OUTPUT_DIR = "output";
 
 	private static final String CREDENTIALS = "docker.credentials";
 	private static final String JWT_TOKEN = "token.jwt";
@@ -79,34 +77,7 @@ public class PipelineRunner {
 	}
 
 	public void runLocally() {
-		log("Pipeline name: {}", pipeline.getName());
-		log("Pipeline description: {}", pipeline.getDescription());
-		long allstart = System.currentTimeMillis();
-		List<PipelineStep> stepSequence = pipeline.determineSequence();
-		int firstStep = options.hasFrom() ? findStep(options.getFrom()) : 1;
-		int lastStep = options.hasTo() ? findStep(options.getTo()) : stepNumber.size();
-		log("Running pipeline steps {} to {}", firstStep, lastStep);
-		uiHandler.beforeRun(stepNumber);
-		try {
-			for (int stepNum = firstStep; stepNum <= lastStep; stepNum++) {
-				PipelineStep step = stepSequence.get(stepNum - 1);
-				long stepstart = System.currentTimeMillis();
-				log("---------------------------------------------------------------------------");
-				log("Running step {}: {}", stepNumber.get(step), step.getId());
-				uiHandler.beforeStep(step);
-				runStep(step);
-				uiHandler.afterStep(resolveInDocker(dirName(step), OUTPUT_DIR), step);
-				log("Terminated step {} after {} seconds", stepNumber.get(step), getSeconds(stepstart));
-			}
-			uiHandler.afterRun(true);
-			log("---------------------------------------------------------------------------");
-			log("Terminated running {} pipeline steps of {} in {} seconds.", stepNumber.size(), pipeline.getDescription(), getSeconds(allstart));
-		} catch (RuntimeException e) {
-			uiHandler.afterRun(false);
-			exception(e);
-			log("---------------------------------------------------------------------------");
-			log("Failed after {} pipeline steps of {} in {} seconds.", stepNumber.size(), pipeline.getDescription(), getSeconds(allstart));
-		}
+		throw new RuntimeException("not implemented");
 	}
 
 	private int findStep(final String nameOrNumber) {
@@ -122,14 +93,6 @@ public class PipelineRunner {
 		return Math.round((System.currentTimeMillis()-start)*0.001);
 	}
 
-	private void runStep(final PipelineStep step) {
-		cleanDirectories(step);
-		step.getConfigInputs().forEach((name, data) -> writeData(step, name, data));
-		step.getInputs().forEach((name, connector) -> copyInput(step, name, connector));
-		if (!runJob(step)) {
-			fail("Execution of step "+step.getId()+" failed.");
-		}
-	}
 
 	private void cleanDirectories(final PipelineStep step) {
 		//removeRecursively(resolveInDocker(dirName(step), INPUT_DIR).toFile());
@@ -150,34 +113,6 @@ public class PipelineRunner {
 		}
 	}
 
-	private boolean runJob(final PipelineStep step) {
-		DockerImageRunner runner = getRunner(step.getDockerImage());
-		if (options.getPull() & (loggedIn == null)) {
-			Path cred = resolveInDocker(CREDENTIALS);
-			loggedIn = cred.toFile().exists() && login(runner, cred);
-		}
-		if (options.getPull() && !runner.pull()) {
-			fail("Could not pull image, stopping pipeline execution");
-		}
-		return runner.run(resolveOnHost(dirName(step)));
-	}
-
-	protected DockerImageRunner getRunner(DockerImage dockerImage) {
-		return new DockerImageRunner(dockerImage, Collections.emptyList(), true, options.getInteractive(), null, options.getPlatform(), null);
-	}
-
-	private boolean login(final DockerImageRunner runner, final Path credentials) {
-		List<String> lines = onException(() -> Files.readAllLines(credentials)).fail("Could not load credentials from "+credentials);
-		if (lines.size() != 2) {
-			warn("Unexpected number of lines in credential file, expected 2, found "+lines.size());
-			return false;
-		}
-		if (!runner.login(lines.get(0), lines.get(1))) {
-			warn("Could not login to docker repository");
-			return false;
-		}
-		return true;
-	}
 
 	private void writeData(final PipelineStep step, final String name, final byte[] data) {
 		final Path target = resolveInDocker(dirName(step), INPUT_DIR, name);

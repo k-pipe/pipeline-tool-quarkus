@@ -1,7 +1,8 @@
 package pipelining.util;
 
-import pipelining.job.Run;
+import pipelining.application.Application;
 import pipelining.logging.Log;
+import pipelining.script.pipeline.localrunner.PipelineRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,32 +13,27 @@ import java.util.Map;
 
 public class ExternalTable {
 
-    private final static String CACHE_DIR = Run.DOCKER_WORKDIR+"/.cache";
     private static final String EXTENSION = ".tsv";
 
-    public static List<String> read(String filename, String url) {
-        Path path = Path.of(CACHE_DIR, filename+EXTENSION);
-        File file = path.toFile();
+    public static List<String> read(String name, String url) {
+        String filename = name+EXTENSION;
         String source;
-        if (file.exists()) {
-            source = path.toString();
+        if (FileCache.exists(filename)) {
+            source = FileCache.cachePath(name).toString();
         } else {
-            file.getParentFile().mkdirs();
+            FileCache.ensureCacheFolderExists();
             ExternalProcess proc = new ExternalProcess(Map.of())
-                    .command("curl", List.of("-L", url, "-o", file.toString()))
+                    .command("curl", List.of("-L", url, "-o", FileCache.cacheFile(filename).toString()))
                     .noError(".*");
             Log.log("Executing command '"+proc.toString()+"':");
             proc.execute();
             Expect.isTrue(proc.hasSucceeded()).elseFail("Could not download external table "+filename);
             source = url;
         }
-        try {
-            List<String> res = Files.readAllLines(path);
-            Log.log("Obtained "+res.size()+" lines from "+source);
-            return res;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        List<String> res = FileCache.read(filename);
+        Log.log("Obtained "+res.size()+" lines from "+source);
+        return res;
+
         /*
         HttpClient client = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.ALWAYS)

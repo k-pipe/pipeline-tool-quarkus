@@ -109,4 +109,8 @@ public class Pipeline {
         Expect.isTrue((endStep == null) || foundEnd).elseFail("end step not found: "+endStep);
         return res;
     }
+
+    public String determineManagedNamespace(String provider) {
+        return markdown.determineManagedNamespace(provider, variables);
+    }
 }

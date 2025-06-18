@@ -36,6 +36,7 @@ public class Main implements QuarkusApplication {
         .command(Constants.SCHEDULE, "schedule",
             Option.withValue(Constants.O, Constants.OUTPUT, "specifies schedule manifest yaml file, append to pipeline definition manifest if omitted").optional()
         )
+        .command(Constants.CLEAN, "clean file cache")
         .command(Constants.BUILD, "build bundled docker images")
         .command(Constants.PUSH, "push bundled docker images")
         .command(Constants.PULL, "pull all docker images (bundled, managed and generic), need to be logged in to kubernetes cluster in case there are any managed images")
@@ -81,6 +82,7 @@ public class Main implements QuarkusApplication {
             case Constants.PARSE: a = new ParseAction(); break;
             case Constants.RUN: a = new RunAction(); break;
             case Constants.SCHEDULE: a = new ScheduleAction(); break;
+            case Constants.CLEAN: a = new CleanAction(); break;
             case Constants.LOGIN: a = new LoginAction(); break;
             case Constants.BUILD: a = new BuildAction(); break;
             case Constants.PUSH: a = new PushAction(); break;

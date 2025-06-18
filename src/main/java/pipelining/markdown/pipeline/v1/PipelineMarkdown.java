@@ -202,7 +202,7 @@ public class PipelineMarkdown extends MarkdownFile {
 		return true;
 	}
 
-	private String determineManagedNamespace(String provider, Map<String, String> variables) {
+	public String determineManagedNamespace(String provider, Map<String, String> variables) {
 		Map<String, String> extendedVars = new HashMap<>(variables);
 		extendedVars.put(PATTERN_VAR_PROVIDER, provider);
 		return resolveNamingConvention(MANAGE_NAMESPACE_PATTERN_KEY, extendedVars);
