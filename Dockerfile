@@ -15,8 +15,8 @@ RUN apt-get update && apt-get -y --no-install-recommends install \
     google-cloud-cli-gke-gcloud-auth-plugin \
     docker \
  && rm -rf /var/lib/apt/lists/*
-COPY --from=build /tmp/my-project/target/*-runner /usr/local/bin/pt
+COPY --from=build /tmp/my-project/target/*-runner /usr/local/bin/pipelining-tool
 WORKDIR /workdir
 #EXPOSE 8080
 #CMD ["./application", "-XX:+PrintGC", "-XX:+PrintGCTimeStamps", "-XX:+VerboseGC", "+XX:+PrintHeapShape", "-Xmx128m", "-Dquarkus.http.host=0.0.0.0"]
-ENTRYPOINT ["/usr/local/bin/pt", "-Xmx128m", "-Dquarkus.http.host=0.0.0.0"]
+ENTRYPOINT ["/usr/local/bin/pipelining-tool", "-Xmx128m", "-Dquarkus.http.host=0.0.0.0"]
